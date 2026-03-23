@@ -12,23 +12,31 @@ const SUGGESTED_QUESTIONS = [
   'How does the F5 swing vote change the game?',
   'What happens if China reaches AI parity?',
   'Why is the F2-F10 alliance so durable?',
-  'Which group is most at risk in the Gold Rush scenario?',
+  'Which group is most at risk right now?',
+];
+
+const GAME_QUESTIONS = [
+  'Why did this scenario dominate?',
+  'Which of my predictions had the biggest impact?',
+  'What would have changed if I predicted differently on jobs?',
+  'Who are the real winners in my world?',
+  'What happens next after January 2028?',
 ];
 
 interface OraclePanelProps {
   isOpen: boolean;
   onClose: () => void;
   preload?: string;
+  gameContext?: string;
 }
 
-export default function OraclePanel({ isOpen, onClose, preload }: OraclePanelProps) {
+export default function OraclePanel({ isOpen, onClose, preload, gameContext }: OraclePanelProps) {
   const [messages, setMessages] = useState<OracleMessage[]>([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
-  // Handle preload context
   useEffect(() => {
     if (isOpen && preload && messages.length === 0) {
       setInput(preload);
@@ -36,7 +44,6 @@ export default function OraclePanel({ isOpen, onClose, preload }: OraclePanelPro
     }
   }, [isOpen, preload, messages.length]);
 
-  // Auto-scroll to bottom
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
@@ -47,9 +54,15 @@ export default function OraclePanel({ isOpen, onClose, preload }: OraclePanelPro
     const msg = text || input.trim();
     if (!msg || loading) return;
 
-    const userMsg: OracleMessage = { role: 'user', content: msg };
+    const enrichedMsg = gameContext
+      ? `[GAME CONTEXT: The player just completed a simulation. ${gameContext}]\n\nPlayer question: ${msg}`
+      : msg;
+
+    const userMsg: OracleMessage = { role: 'user', content: enrichedMsg };
+    const displayMsg: OracleMessage = { role: 'user', content: text || input.trim() };
     const newMessages = [...messages, userMsg];
-    setMessages(newMessages);
+    const displayMessages = [...messages, displayMsg];
+    setMessages(displayMessages);
     setInput('');
     setLoading(true);
 
@@ -60,16 +73,14 @@ export default function OraclePanel({ isOpen, onClose, preload }: OraclePanelPro
         body: JSON.stringify({ messages: newMessages }),
       });
 
-      if (!res.ok) {
-        throw new Error('Oracle request failed');
-      }
+      if (!res.ok) throw new Error('Oracle request failed');
 
       const data = await res.json();
-      setMessages([...newMessages, { role: 'assistant', content: data.content || 'No response.' }]);
+      setMessages([...displayMessages, { role: 'assistant', content: data.content || 'No response.' }]);
     } catch {
       setMessages([
-        ...newMessages,
-        { role: 'assistant', content: 'Something went wrong. Please try again.' },
+        ...displayMessages,
+        { role: 'assistant', content: '> ERROR: Connection lost. Please try again.' },
       ]);
     } finally {
       setLoading(false);
@@ -78,48 +89,59 @@ export default function OraclePanel({ isOpen, onClose, preload }: OraclePanelPro
 
   if (!isOpen) return null;
 
+  const suggestedQs = gameContext ? GAME_QUESTIONS : SUGGESTED_QUESTIONS;
+
   return (
     <>
-      {/* Backdrop */}
-      <div className="fixed inset-0 bg-black/40 z-40" onClick={onClose} />
+      <div className="fixed inset-0 bg-black/50 z-40" onClick={onClose} />
 
-      {/* Panel */}
-      <div className="fixed top-0 right-0 h-full w-[480px] bg-surf border-l border-border z-50 flex flex-col animate-[slideIn_0.25s_ease-out_forwards]">
-        {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-border flex-shrink-0">
-          <div>
-            <p className="font-mono text-sm font-bold text-gold tracking-[0.1em]">◎ AI ORACLE</p>
-            <p className="font-mono text-[10px] text-muted mt-0.5">
-              Ask anything about factions, scenarios, or dynamics
-            </p>
+      <div className="fixed top-0 right-0 h-full w-[480px] terminal z-50 flex flex-col animate-[slideIn_0.25s_ease-out_forwards]">
+        {/* Terminal header */}
+        <div className="terminal-header flex items-center justify-between px-5 py-3 flex-shrink-0">
+          <div className="flex items-center gap-3">
+            <div className="flex gap-1.5">
+              <div className="w-2.5 h-2.5 rounded-full bg-red/60" />
+              <div className="w-2.5 h-2.5 rounded-full bg-amber/60" />
+              <div className="w-2.5 h-2.5 rounded-full bg-green/60" />
+            </div>
+            <div>
+              <p className="font-mono text-[11px] font-bold text-gold tracking-[0.1em]">
+                ◎ ORACLE_TERMINAL
+              </p>
+              <p className="font-mono text-[8px] text-gold/30 tracking-[0.08em]">
+                {gameContext ? 'MODE: POST-GAME ANALYSIS' : 'MODE: SCENARIO INTELLIGENCE'}
+              </p>
+            </div>
           </div>
           <button
             onClick={onClose}
-            className="text-muted hover:text-text transition-colors text-xl leading-none cursor-pointer"
+            className="font-mono text-[10px] text-muted hover:text-gold border border-border hover:border-gold/40 rounded px-2 py-1 transition-colors cursor-pointer"
           >
-            ×
+            [ESC]
           </button>
         </div>
 
         {/* Messages */}
-        <div ref={scrollRef} className="flex-1 overflow-y-auto px-6 py-4 space-y-4">
+        <div ref={scrollRef} className="flex-1 overflow-y-auto px-5 py-4 space-y-3">
           {messages.length === 0 && !loading && (
             <div>
-              <p className="font-serif text-sm text-body mb-4 leading-[1.7]">
-                I have deep knowledge of all 10 factions, their alliances, the 3 scenarios,
-                14 societal groups, and 9 trigger events. Ask me anything.
+              <p className="font-mono text-[11px] text-gold/40 mb-1">&gt; ORACLE READY</p>
+              <p className="font-serif text-sm text-body mb-4 leading-[1.6]">
+                {gameContext
+                  ? 'I have your simulation results. Ask me anything about the world your predictions created.'
+                  : 'Full analytical context loaded: 10 factions, 3 scenarios, 14 groups, 9 triggers. Query me.'}
               </p>
-              <p className="font-mono text-[10px] tracking-[0.15em] text-muted uppercase mb-2">
-                SUGGESTED QUESTIONS
+              <p className="font-mono text-[9px] tracking-[0.1em] text-gold/30 uppercase mb-2">
+                SUGGESTED QUERIES
               </p>
-              <div className="space-y-1.5">
-                {SUGGESTED_QUESTIONS.map((q) => (
+              <div className="space-y-1">
+                {suggestedQs.map((q) => (
                   <button
                     key={q}
                     onClick={() => send(q)}
-                    className="block w-full text-left font-serif text-xs text-body bg-card border border-border rounded-lg px-3 py-2 hover:border-gold/40 hover:text-text transition-colors cursor-pointer"
+                    className="block w-full text-left font-mono text-[11px] text-body/80 bg-[#0d1117] border border-[#1A253544] rounded px-3 py-2 hover:border-gold/30 hover:text-gold transition-colors cursor-pointer"
                   >
-                    {q}
+                    &gt; {q}
                   </button>
                 ))}
               </div>
@@ -127,42 +149,42 @@ export default function OraclePanel({ isOpen, onClose, preload }: OraclePanelPro
           )}
 
           {messages.map((msg, i) => (
-            <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-              <div
-                className={`max-w-[85%] rounded-xl px-4 py-3 ${
-                  msg.role === 'user'
-                    ? 'bg-[#C9A84C18] border border-gold/30'
-                    : 'bg-card border border-border'
-                }`}
-              >
-                <p className="font-serif text-sm text-text leading-[1.7] whitespace-pre-wrap">
-                  {msg.content}
-                </p>
-              </div>
+            <div key={i}>
+              {msg.role === 'user' ? (
+                <div className="flex items-start gap-2">
+                  <span className="font-mono text-[10px] text-gold/50 mt-0.5 flex-shrink-0">&gt;</span>
+                  <p className="font-mono text-sm text-gold leading-[1.5]">{msg.content}</p>
+                </div>
+              ) : (
+                <div className="pl-4 border-l border-gold/10">
+                  <p className="font-serif text-sm text-text/90 leading-[1.7] whitespace-pre-wrap">
+                    {msg.content}
+                  </p>
+                </div>
+              )}
             </div>
           ))}
 
-          {/* Loading dots */}
           {loading && (
-            <div className="flex justify-start">
-              <div className="bg-card border border-border rounded-xl px-4 py-3">
-                <div className="flex gap-1.5">
-                  {[0, 1, 2].map((i) => (
-                    <div
-                      key={i}
-                      className="w-1.5 h-1.5 rounded-full bg-gold"
-                      style={{ animation: `dot 1.4s ${i * 0.22}s ease-in-out infinite` }}
-                    />
-                  ))}
-                </div>
+            <div className="flex items-center gap-2 pl-4">
+              <span className="font-mono text-[10px] text-gold/40">PROCESSING</span>
+              <div className="flex gap-1">
+                {[0, 1, 2].map((i) => (
+                  <div
+                    key={i}
+                    className="w-1.5 h-1.5 rounded-full bg-gold/60"
+                    style={{ animation: `dot 1.4s ${i * 0.22}s ease-in-out infinite` }}
+                  />
+                ))}
               </div>
             </div>
           )}
         </div>
 
         {/* Input */}
-        <div className="px-6 py-4 border-t border-border flex-shrink-0">
-          <div className="flex gap-2">
+        <div className="px-5 py-3 border-t border-[#C9A84C15] flex-shrink-0">
+          <div className="flex gap-2 items-end">
+            <span className="font-mono text-sm text-gold/40 mb-1.5">&gt;</span>
             <textarea
               ref={inputRef}
               value={input}
@@ -173,19 +195,18 @@ export default function OraclePanel({ isOpen, onClose, preload }: OraclePanelPro
                   send();
                 }
               }}
-              placeholder="Ask the Oracle..."
-              rows={2}
-              className="flex-1 bg-card border border-border rounded-lg text-text font-serif text-sm leading-[1.6] p-3 resize-none"
+              placeholder="Query the Oracle..."
+              rows={1}
+              className="flex-1 terminal-input rounded px-3 py-2 text-gold font-mono text-sm leading-[1.5] resize-none"
             />
             <button
               onClick={() => send()}
               disabled={!input.trim() || loading}
-              className={`font-mono text-xs font-bold tracking-[0.1em] px-4 rounded-md transition-colors self-end ${
+              className={`font-mono text-[10px] font-bold tracking-[0.1em] px-3 py-2 rounded transition-colors ${
                 !input.trim() || loading
                   ? 'bg-raised text-muted cursor-not-allowed'
-                  : 'bg-gold text-black hover:bg-[#DEB85C] cursor-pointer'
+                  : 'bg-gold/20 text-gold border border-gold/40 hover:bg-gold/30 cursor-pointer'
               }`}
-              style={{ height: 40 }}
             >
               SEND
             </button>

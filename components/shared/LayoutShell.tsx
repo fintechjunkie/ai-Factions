@@ -9,13 +9,21 @@ import WorldPanel from './WorldPanel';
 function LayoutInner({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const isLanding = pathname === '/';
-  const { oracleOpen, oraclePreload, closeOracle, worldPanelOpen, worldPanelContext, closeWorldPanel } = useApp();
+  const {
+    oracleOpen, oraclePreload, oracleGameContext, closeOracle,
+    worldPanelOpen, worldPanelContext, closeWorldPanel,
+  } = useApp();
 
   return (
     <>
       {!isLanding && <NavBar />}
       {children}
-      <OraclePanel isOpen={oracleOpen} onClose={closeOracle} preload={oraclePreload} />
+      <OraclePanel
+        isOpen={oracleOpen}
+        onClose={closeOracle}
+        preload={oraclePreload}
+        gameContext={oracleGameContext}
+      />
       <WorldPanel isOpen={worldPanelOpen} onClose={closeWorldPanel} context={worldPanelContext} />
     </>
   );

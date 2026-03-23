@@ -7,8 +7,10 @@ interface AppContextType {
   // Oracle
   oracleOpen: boolean;
   oraclePreload: string | undefined;
+  oracleGameContext: string | undefined;
   openOracle: (preload?: string) => void;
   closeOracle: () => void;
+  setGameContext: (ctx: string | undefined) => void;
 
   // WorldPanel
   worldPanelOpen: boolean;
@@ -22,6 +24,7 @@ const AppContext = createContext<AppContextType | null>(null);
 export function AppProvider({ children }: { children: ReactNode }) {
   const [oracleOpen, setOracleOpen] = useState(false);
   const [oraclePreload, setOraclePreload] = useState<string | undefined>();
+  const [oracleGameContext, setOracleGameContext] = useState<string | undefined>();
   const [worldPanelOpen, setWorldPanelOpen] = useState(false);
   const [worldPanelContext, setWorldPanelContext] = useState<WorldPanelContext | null>(null);
 
@@ -32,6 +35,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   function closeOracle() {
     setOracleOpen(false);
+  }
+
+  function setGameContext(ctx: string | undefined) {
+    setOracleGameContext(ctx);
   }
 
   function openWorldPanel(ctx: WorldPanelContext) {
@@ -48,8 +55,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
       value={{
         oracleOpen,
         oraclePreload,
+        oracleGameContext,
         openOracle,
         closeOracle,
+        setGameContext,
         worldPanelOpen,
         worldPanelContext,
         openWorldPanel,
