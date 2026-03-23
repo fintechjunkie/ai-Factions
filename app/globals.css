@@ -1,0 +1,48 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html, body {
+  background: #07090F;
+  min-height: 100%;
+}
+
+body {
+  color: #E6DDD0;
+}
+
+@keyframes dot {
+  0%, 100% { opacity: 0.2; transform: scale(0.7); }
+  50% { opacity: 1; transform: scale(1); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideIn {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+
+::-webkit-scrollbar {
+  width: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #1A2535;
+  border-radius: 2px;
+}
+
+textarea {
+  outline: none;
+}
+
+textarea:focus {
+  border-color: #C9A84C66;
+}
+
+textarea::placeholder {
+  color: #4A5570;
+}

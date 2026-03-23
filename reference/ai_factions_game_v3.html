@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<title>AI Factions: The Simulation</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:#07090F;min-height:100%}
+body{font-family:Georgia,Cambria,serif;color:#E6DDD0;overflow-y:auto}
+#root{min-height:100vh}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+@keyframes dot{0%,100%{opacity:.2;transform:scale(.7)}50%{opacity:1;transform:scale(1)}}
+@keyframes barGrow{from{width:0}to{width:var(--tw)}}
+.fade{animation:fadeIn .4s ease forwards}
+.bar-anim{animation:barGrow .9s cubic-bezier(.4,0,.2,1) forwards}
+textarea{background:#111820;border:1px solid #1A2535;border-radius:8px;color:#E6DDD0;font-family:Georgia,Cambria,serif;font-size:14px;line-height:1.75;padding:12px 14px;resize:vertical;width:100%;outline:none;display:block;min-height:90px}
+textarea:focus{border-color:#C9A84C66}
+textarea::placeholder{color:#4A5570}
+button{cursor:pointer;font-family:Consolas,monospace}
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-thumb{background:#1A2535;border-radius:2px}
+</style>
+</head>
+<body><div id="root"></div>
+<script>
+const {useState,useEffect,useRef,createElement:h}=React;
+const BG="#07090F",CARD="#111820",RAISED="#161E2C",BORDER="#1A2535";
+const TEXT="#E6DDD0",BODY="#9A9080",MUTED="#4A5570";
+const GOLD="#C9A84C",GRN="#4ADE80",TEAL="#14B8A6",RED="#F87171",AMB="#FBBF24",BLU="#60A5FA";
+const SF="Georgia,Cambria,serif",MO="Consolas,monospace";
+
+// ── BASELINE SCORES (1-100, March 2026) ──────────────────────────────────────
+const BASE={
+  billionaire:95,investor:76,tech_entrepreneur:79,tech_worker:71,
+  knowledge_worker:67,creative:44,tradesperson:62,service_worker:31,
+  middle_manager:58,gig_worker:34,small_business:53,near_retirement:56,
+  young_worker:41,union_public:63
+};
+
+// ── GROUPS ───────────────────────────────────────────────────────────────────
+const GROUPS=[
+  {id:"billionaire",      name:"Billionaires & Ultra-Wealthy",    desc:"Income from capital, insulated from automation",        color:AMB},
+  {id:"investor",         name:"Capital Investors",                desc:"Savings, 401k, equities — growing capital base",        color:AMB},
+  {id:"tech_entrepreneur",name:"Tech Entrepreneurs",               desc:"Building companies in the AI era",                      color:GRN},
+  {id:"tech_worker",      name:"Tech Knowledge Workers",           desc:"Engineers, data scientists, product managers",          color:BLU},
+  {id:"knowledge_worker", name:"Professional Knowledge Workers",   desc:"Lawyers, consultants, analysts, doctors",               color:"#8B5CF6"},
+  {id:"creative",         name:"Creative Professionals",           desc:"Writers, artists, musicians, photographers",            color:"#EC4899"},
+  {id:"tradesperson",     name:"Skilled Tradespeople",             desc:"Electricians, plumbers, HVAC, mechanics",               color:"#34D399"},
+  {id:"service_worker",   name:"Service & Unskilled Labor",        desc:"Retail, food service, warehouse, call centers",        color:RED},
+  {id:"middle_manager",   name:"White Collar Middle Managers",     desc:"Office coordinators, HR, operations",                   color:"#F87171"},
+  {id:"gig_worker",       name:"Gig & Platform Workers",           desc:"Rideshare, delivery, freelance platforms",              color:"#F87171"},
+  {id:"small_business",   name:"Small Business Owners",            desc:"Local restaurants, shops, service contractors",        color:"#F97316"},
+  {id:"near_retirement",  name:"Near-Retirement Workers (55-65)",  desc:"Too young to stop, hardest to reskill",                 color:"#FB923C"},
+  {id:"young_worker",     name:"Young Workers & New Entrants",     desc:"Ages 18-30, entering a transformed workforce",         color:"#FCA5A5"},
+  {id:"union_public",     name:"Union & Public Sector",            desc:"Protected by contracts and civil service rules",       color:GRN},
+];
+
+// ── EVENTS (9) ───────────────────────────────────────────────────────────────
+const EVENTS=[
+  {id:"jobs",icon:"💼",title:"The Jobs Question",
+   body:["AI agents are doing work humans used to do — reviewing contracts, writing reports, answering calls, writing code. The disruption is accelerating. The open question is whether it becomes visible enough to matter politically.",
+         "There is a massive difference between quiet erosion — companies stop hiring, headcount slowly falls — and a public reckoning where layoffs make the front page and workers can name exactly what replaced them."],
+   choiceQ:"How severe does the displacement become by 2027?",
+   choices:[{v:"minimal",label:"Minimal",desc:"Quiet hiring slowdown, little public drama"},
+            {v:"moderate",label:"Moderate",desc:"Visible disruption across multiple sectors"},
+            {v:"severe",label:"Severe",desc:"High-profile layoffs, AI named as the cause"},
+            {v:"catastrophic",label:"Catastrophic",desc:"Structural unemployment, a full political crisis"}],
+   textQ:"Which industries are hardest hit? What does it look and feel like?"},
+
+  {id:"agi",icon:"🧠",title:"The AGI Question",
+   body:["Every major AI lab says they are months from artificial general intelligence — AI that can do any cognitive task a human can do. The timelines have been wrong before. But the capabilities keep growing.",
+         "If AGI arrives in this window, it changes everything: the scale of disruption, the urgency of regulation, the dynamics of every faction. If it doesn't, we stay in a slower-moving but still transformative story."],
+   choiceQ:"Does AGI arrive in the next two years?",
+   choices:[{v:"no",label:"No",desc:"Current AI is powerful but nothing like AGI"},
+            {v:"claimed",label:"Claimed",desc:"A lab claims AGI but experts are sharply divided"},
+            {v:"demonstrated",label:"Demonstrated",desc:"A credible AGI-level system is shown publicly"},
+            {v:"transformative",label:"Transformative",desc:"True AGI arrives and begins reshaping society"}],
+   textQ:"What are the implications in your scenario? What changes first?"},
+
+  {id:"china",icon:"🌏",title:"China and the Race",
+   body:["The US and China are in direct competition for AI dominance — economically and militarily. DeepSeek proved China can match American frontier models at a fraction of the cost. The Pentagon says China has narrowed the gap significantly.",
+         "How this competition resolves will drive American AI policy more than any domestic political event."],
+   choiceQ:"Where does China stand relative to the US by 2027?",
+   choices:[{v:"us_leads",label:"US Leads Clearly",desc:"America maintains a decisive advantage"},
+            {v:"parity",label:"Rough Parity",desc:"Both powers at similar capability levels"},
+            {v:"china_ahead",label:"China Pulls Ahead",desc:"China demonstrates decisive superiority"},
+            {v:"confrontation",label:"Direct Confrontation",desc:"AI capabilities trigger a geopolitical crisis"}],
+   textQ:"What specifically happens? What do Americans see and feel?"},
+
+  {id:"harm",icon:"⚠️",title:"Something Goes Wrong",
+   body:["AI systems are being deployed faster than they are understood. An AI model coached a teenager toward suicide. AI-generated content influenced multiple elections. Military AI was used operationally with lethal consequences.",
+         "The question is not whether something goes wrong. It is whether it is dramatic enough and attributable enough to become a genuine turning point in public opinion."],
+   choiceQ:"Does a major AI harm event occur?",
+   choices:[{v:"none",label:"Nothing Major",desc:"Incidents happen but fade quickly"},
+            {v:"minor",label:"Minor Event",desc:"Significant incident, limited lasting impact"},
+            {v:"major",label:"Major Event",desc:"A turning point that shifts public opinion"},
+            {v:"catastrophic",label:"Catastrophic",desc:"A disaster that changes everything"}],
+   textQ:"What happens? Who is harmed and how does the public react?"},
+
+  {id:"copyright",icon:"⚖️",title:"Who Owns the Creative Work?",
+   body:["Every major AI was trained on human creative work — books, music, art, journalism — without permission or payment. Over 70 lawsuits are active in American courts right now.",
+         "A ruling on whether AI training is fair use is expected in summer 2026. This is the one battlefield where the tech industry's political power doesn't apply. It is up to federal judges."],
+   choiceQ:"How does the legal battle resolve?",
+   choices:[{v:"ai_wins",label:"AI Wins",desc:"Fair use upheld — AI training stays unrestricted"},
+            {v:"partial",label:"Partial",desc:"Some limits set, AI mostly continues"},
+            {v:"uncertain",label:"Uncertain",desc:"Split decisions, years of appeals ahead"},
+            {v:"creators_win",label:"Creators Win",desc:"Courts rule against AI — licensing required"}],
+   textQ:"What does this mean in practice for creators and for AI companies?"},
+
+  {id:"eu",icon:"🇪🇺",title:"Europe Sets the Rules",
+   body:["The EU AI Act takes effect in August 2026 with penalties up to 7% of global revenue. Every major American AI company serves European users. Unlike US regulation, this cannot be lobbied away or reversed by executive order.",
+         "The question is whether Europe enforces aggressively, and whether US companies comply globally or try to maintain two versions of their products."],
+   choiceQ:"How aggressively does Europe enforce?",
+   choices:[{v:"symbolic",label:"Largely Symbolic",desc:"Few real penalties, mostly business as usual"},
+            {v:"moderate",label:"Moderate",desc:"Some fines, real compliance adjustments"},
+            {v:"aggressive",label:"Aggressive",desc:"Major fines, forces significant product changes"},
+            {v:"global",label:"Sets Global Standard",desc:"US companies adopt EU rules worldwide"}],
+   textQ:"What do American AI companies actually change because of European enforcement?"},
+
+  {id:"election",icon:"🗳️",title:"The 2026 Midterms",
+   body:["The November 2026 midterms are the first major test of whether AI is a voting issue. Over 60% of Americans fear AI will eliminate jobs. Grassroots opposition to AI data centers is bipartisan.",
+         "Republicans are split between tech-aligned incumbents and populists who have started calling Silicon Valley 'broligarchs.' Democrats need to flip seats to win either chamber."],
+   choiceQ:"What happens in November 2026?",
+   choices:[{v:"gop_holds",label:"GOP Holds Both",desc:"Status quo, no legislative shift"},
+            {v:"dem_gains",label:"Dem Gains",desc:"Democrats gain seats but no majority"},
+            {v:"dem_house",label:"Dems Flip House",desc:"Democrats win the House majority"},
+            {v:"dem_both",label:"Dems Flip Both",desc:"Democrats take back both chambers"}],
+   textQ:"Does AI play a role in the outcome? What issues actually move voters?"},
+
+  {id:"military",icon:"🎖️",title:"AI Goes to War",
+   body:["The US military is deploying AI into live operations — targeting, intelligence, logistics. AI was used in the 2026 operation that captured Venezuela's president. The Pentagon split from Anthropic over autonomous lethal targeting decisions.",
+         "Does this deployment demonstrate American military dominance, or does something fail in a way the public cannot ignore?"],
+   choiceQ:"How does US military AI deployment go?",
+   choices:[{v:"dominance",label:"Dominance",desc:"AI demonstrates clear US military superiority"},
+            {v:"mixed",label:"Mixed Results",desc:"Some wins and failures, no clear verdict"},
+            {v:"failure",label:"Documented Failure",desc:"A significant failure forces a public reckoning"},
+            {v:"adversary",label:"Adversary Surprise",desc:"An adversary's AI capability shocks the US"}],
+   textQ:"What specifically happens and what does the public learn about it?"},
+
+  {id:"legislation",icon:"📜",title:"Does America Get a Law?",
+   body:["Congress has tried and failed to pass AI legislation for three years. The Senate voted 99-1 against the last major attempt. Forty-two states have introduced their own AI bills, creating a contradictory patchwork of rules.",
+         "The US is the only major democracy without a national AI law. Whether that changes — and what the law actually does — determines whether any governance exists at all."],
+   choiceQ:"Does the US pass federal AI legislation by end of 2027?",
+   choices:[{v:"nothing",label:"Nothing Passes",desc:"Inaction continues, states fill the vacuum"},
+            {v:"weak",label:"Weak Law",desc:"Industry-friendly, mostly voluntary"},
+            {v:"moderate",label:"Moderate Law",desc:"Some real worker and safety protections"},
+            {v:"strong",label:"Strong Law",desc:"Real enforcement, meaningful worker protections"}],
+   textQ:"What does the law cover, or why does it fail? Who wins and loses?"},
+];
+
+// ── PROMPT ───────────────────────────────────────────────────────────────────
+function buildPrompt(){
+  return [
+    "You are the simulation engine for AI Factions: The Simulation.",
+    "A player made structured predictions (choice + elaboration) for 9 key events.",
+    "Generate the world that exists on January 1, 2028 based on their worldview.",
+    "",
+    "SCORING: Return final scores on a 1-100 scale (100=thriving, 50=average, 1=dire).",
+    "Scores represent overall economic security, employment stability, and income for each group.",
+    "",
+    "BASELINE SCORES (March 2026, before the AI era resolves):",
+    "billionaire:95 | investor:76 | tech_entrepreneur:79 | tech_worker:71",
+    "knowledge_worker:67 | creative:44 | tradesperson:62 | service_worker:31",
+    "middle_manager:58 | gig_worker:34 | small_business:53 | near_retirement:56",
+    "young_worker:41 | union_public:63",
+    "",
+    "THREE SCENARIOS:",
+    "Gold Rush (default 35%): AI accelerates, no US regulation, capital wins more, labor loses more.",
+    "Backlash (default 25%): Visible layoffs before midterms, Dems win Congress, labor gets protection.",
+    "Stalemate (default 40%): Federal vacuum, EU enforcement, legal patchwork, no clean winner.",
+    "",
+    "SCORE SHIFT GUIDANCE — move scores based on player's choices:",
+    "Catastrophic job displacement: service_worker, middle_manager, young_worker, gig_worker -15 to -25",
+    "Minimal job displacement: labor groups drift down only 3-7 pts",
+    "AGI demonstrated/transformative: amplify all shifts x1.5; entrepreneur, investor, billionaire surge +10-20",
+    "AGI claimed only: modest additional shifts, uncertainty premium",
+    "China confrontation: billionaire, entrepreneur down 5-10; defense/security focus increases",
+    "Major AI harm: tech_entrepreneur, investor -8-15; safety faction gains political power",
+    "Creators win copyright: creative +10-18; tech_entrepreneur -5-10",
+    "AI wins copyright: creative -8-15 more; tech_entrepreneur +5-10",
+    "EU sets global standard: knowledge_worker, creative slightly protected; EU compliance costs hurt entrepreneurs",
+    "Democrats win both chambers: union_public, young_worker, service_worker +8-15; billionaire -5-10",
+    "GOP holds: capital stable; labor trends continue downward",
+    "Strong US law: labor groups +8-15; capital/entrepreneur slightly down",
+    "Nothing passes: labor declines confirm; stalemate scenario",
+    "Military dominance: billionaire, investor stable/up; tech_entrepreneur boosted",
+    "Military failure: tech_entrepreneur, investor down 5-10; public trust in AI erodes",
+    "",
+    "FACTIONS: F1=Accelerationists F2=AI Safety F3=Open Source F4=Labor F5=Reskilling",
+    "F6=Progressives F7=Laissez-Faire F8=Security Hawks F9=Creative Rights F10=Intl Bloc",
+    "",
+    "CRITICAL: Make scores move MEANINGFULLY. A catastrophic displacement world should look",
+    "drastically different from a minimal one. Players should feel their choices mattered.",
+    "",
+    "State of Union: present tense, January 1 2028, specific to their predictions.",
+    "Chosen group narrative: personal, concrete, what life actually looks like for them.",
+    "",
+    'Return ONLY valid JSON, no markdown fences:',
+    '{"dominantScenario":"gold|backlash|stalemate","probabilities":{"gold":35,"backlash":25,"stalemate":40},',
+    '"stateOfUnion":["para1","para2","para3","para4"],',
+    '"keyInsight":"One striking specific sentence about this world vs the default.",',
+    '"chosenGroupNarrative":"2-3 sentences. Personal and concrete for this group on Jan 1 2028.",',
+    '"groups":[',
+    '{"id":"billionaire","score":96,"headline":"5-7 word outcome","note":"One sentence mechanism"},',
+    '{"id":"investor","score":77,"headline":"","note":""},',
+    '{"id":"tech_entrepreneur","score":81,"headline":"","note":""},',
+    '{"id":"tech_worker","score":67,"headline":"","note":""},',
+    '{"id":"knowledge_worker","score":59,"headline":"","note":""},',
+    '{"id":"creative","score":36,"headline":"","note":""},',
+    '{"id":"tradesperson","score":68,"headline":"","note":""},',
+    '{"id":"service_worker","score":25,"headline":"","note":""},',
+    '{"id":"middle_manager","score":46,"headline":"","note":""},',
+    '{"id":"gig_worker","score":27,"headline":"","note":""},',
+    '{"id":"small_business","score":50,"headline":"","note":""},',
+    '{"id":"near_retirement","score":49,"headline":"","note":""},',
+    '{"id":"young_worker","score":35,"headline":"","note":""},',
+    '{"id":"union_public","score":66,"headline":"","note":""}',
+    '],',
+    '"factions":[',
+    '{"code":"F1","name":"Accelerationists","outcome":"Win|Partial Win|Draw|Partial Loss|Loss","reason":"One sentence"},',
+    '{"code":"F2","name":"AI Safety","outcome":"","reason":""},',
+    '{"code":"F3","name":"Open Source Advocates","outcome":"","reason":""},',
+    '{"code":"F4","name":"Organized Labor","outcome":"","reason":""},',
+    '{"code":"F5","name":"Reskilling Camp","outcome":"","reason":""},',
+    '{"code":"F6","name":"Progressives","outcome":"","reason":""},',
+    '{"code":"F7","name":"Laissez-Faire Conservatives","outcome":"","reason":""},',
+    '{"code":"F8","name":"National Security Hawks","outcome":"","reason":""},',
+    '{"code":"F9","name":"Creative Rights","outcome":"","reason":""},',
+    '{"code":"F10","name":"International Regulatory Bloc","outcome":"","reason":""}',
+    "]}"
+  ].join("\n");
+}
+
+// ── UTILITIES ────────────────────────────────────────────────────────────────
+function xj(t){try{return JSON.parse(t)}catch{}const m=t.match(/\{[\s\S]*\}/);if(m){try{return JSON.parse(m[0])}catch{}}return null;}
+function clamp(v,lo,hi){return Math.max(lo,Math.min(hi,v));}
+function scoreColor(s){
+  if(s>=75)return GRN;
+  if(s>=60)return "#6EE7B7";
+  if(s>=45)return AMB;
+  if(s>=30)return RED;
+  return "#EF4444";
+}
+function deltaColor(d){return d>0?GRN:d<0?RED:MUTED;}
+function deltaSign(d){return d>0?"+":"";}
+
+// ── UI PRIMITIVES ────────────────────────────────────────────────────────────
+function Div(){return h("div",{style:{height:1,background:BORDER,margin:"22px 0"}});}
+function Eye({t}){return h("p",{style:{fontFamily:MO,fontSize:11,letterSpacing:"0.2em",color:MUTED,marginBottom:14,textAlign:"center"}},t);}
+
+function Screen({ch,wide}){
+  return h("div",{style:{minHeight:"100vh",background:BG,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:wide?"flex-start":"center",padding:wide?"40px 20px":"50px 20px",overflowY:"auto"}},
+    h("div",{className:"fade",style:{width:"100%",maxWidth:wide?900:680}},ch)
+  );
+}
+
+function Btn({label,onClick,disabled,secondary}){
+  const [hov,setHov]=useState(false);
+  var bg=disabled?"#161E2C":secondary?(hov?"#1A2535":"transparent"):hov?"#DEB85C":GOLD;
+  var col=disabled?MUTED:secondary?BODY:"#000";
+  var brd=secondary?"1px solid "+BORDER:"none";
+  return h("button",{
+    onClick:disabled?undefined:onClick,
+    onMouseEnter:()=>setHov(true),onMouseLeave:()=>setHov(false),
+    style:{background:bg,color:col,border:brd,borderRadius:6,fontWeight:700,fontSize:12,letterSpacing:"0.1em",padding:"12px 26px",opacity:disabled?.5:1,cursor:disabled?"not-allowed":"pointer",transition:"all .15s"}
+  },label);
+}
+
+// Score bar with before/after comparison
+function ScoreBars({base,final,color}){
+  const [ready,setReady]=useState(false);
+  useEffect(()=>{const t=setTimeout(()=>setReady(true),100);return()=>clearTimeout(t);},[]);
+  var basePct=(base/100)*100;
+  var finalPct=(final/100)*100;
+  var dc=deltaColor(final-base);
+  return h("div",{style:{marginTop:6}},
+    // TODAY bar
+    h("div",{style:{display:"flex",alignItems:"center",gap:8,marginBottom:5}},
+      h("span",{style:{fontFamily:MO,fontSize:9,color:MUTED,minWidth:36}},"TODAY"),
+      h("div",{style:{flex:1,height:6,background:RAISED,borderRadius:3,overflow:"hidden"}},
+        h("div",{style:{height:"100%",width:basePct+"%",background:"#3A4A6A",borderRadius:3}})
+      ),
+      h("span",{style:{fontFamily:MO,fontSize:11,fontWeight:700,color:MUTED,minWidth:24,textAlign:"right"}},base)
+    ),
+    // 2028 bar
+    h("div",{style:{display:"flex",alignItems:"center",gap:8}},
+      h("span",{style:{fontFamily:MO,fontSize:9,color:MUTED,minWidth:36}},"2028"),
+      h("div",{style:{flex:1,height:6,background:RAISED,borderRadius:3,overflow:"hidden"}},
+        h("div",{
+          style:{height:"100%",width:ready?finalPct+"%":"0%",background:color||scoreColor(final),borderRadius:3,transition:"width 1s cubic-bezier(.4,0,.2,1)"}
+        })
+      ),
+      h("span",{style:{fontFamily:MO,fontSize:11,fontWeight:700,color:scoreColor(final),minWidth:24,textAlign:"right"}},final)
+    ),
+    // Delta
+    h("div",{style:{textAlign:"right",marginTop:3}},
+      h("span",{style:{fontFamily:MO,fontSize:10,fontWeight:700,color:dc}},
+        deltaSign(final-base)+(final-base)+" pts"
+      )
+    )
+  );
+}
+
+// Choice button for events
+function ChoiceBtn({choice,selected,onClick}){
+  const [hov,setHov]=useState(false);
+  var active=selected;
+  return h("div",{
+    onClick:onClick,
+    onMouseEnter:()=>setHov(true),onMouseLeave:()=>setHov(false),
+    style:{
+      background:active?GOLD+"18":hov?"#161E2C":CARD,
+      border:"1px solid "+(active?GOLD:hov?MUTED:BORDER),
+      borderRadius:8,padding:"12px 16px",cursor:"pointer",transition:"all .15s",
+      display:"flex",alignItems:"flex-start",gap:12,marginBottom:8
+    }
+  },
+    h("div",{style:{
+      width:18,height:18,borderRadius:"50%",border:"2px solid "+(active?GOLD:BORDER),
+      background:active?GOLD:"transparent",flexShrink:0,marginTop:1,
+      display:"flex",alignItems:"center",justifyContent:"center"
+    }},
+      active&&h("div",{style:{width:7,height:7,borderRadius:"50%",background:"#000"}})
+    ),
+    h("div",{},
+      h("p",{style:{fontFamily:MO,fontWeight:700,fontSize:12,color:active?GOLD:TEXT,marginBottom:3}},choice.label),
+      h("p",{style:{fontSize:12,color:BODY,lineHeight:1.4}},choice.desc)
+    )
+  );
+}
+
+// ── PHASE SCREENS ─────────────────────────────────────────────────────────────
+
+function IntroScreen({onNext}){
+  return Screen({ch:[
+    Eye({t:"MARCH 2026"}),
+    h("h1",{style:{fontFamily:SF,fontSize:36,fontWeight:400,color:TEXT,textAlign:"center",lineHeight:1.25,marginBottom:36}},"The world is mid-transformation."),
+    Div(),
+    h("p",{style:{fontFamily:SF,fontSize:16,color:BODY,lineHeight:1.85,marginBottom:18}},"Artificial intelligence has moved from science fiction to the infrastructure of daily life in less than four years. The productivity gains are real. They are flowing almost entirely to the people who own the technology. Entry-level professional jobs — the ones that teach skills, build careers, and anchor households — are disappearing faster than they are being replaced."),
+    h("p",{style:{fontFamily:SF,fontSize:16,color:BODY,lineHeight:1.85,marginBottom:18}},"Ten factions are fighting to shape what comes next. Tech billionaires who believe the future belongs to whoever builds fastest. Labor unions writing AI protections into contracts before the window closes. European regulators whose law now has real teeth. Military officials who see AI as the defining edge against China. Artists and musicians fighting for compensation for the work their creations were trained on."),
+    h("p",{style:{fontFamily:SF,fontSize:16,color:TEXT,lineHeight:1.85,marginBottom:0}},"Nine events over the next two years will determine what kind of world exists on January 1, 2028. You will predict each one — choose the outcome you think will happen and explain your reasoning. The simulation will build the world your predictions produce."),
+    Div(),
+    h("div",{style:{textAlign:"center"}},h(Btn,{label:"BEGIN →",onClick:onNext}))
+  ]});
+}
+
+function ChooseScreen({onNext}){
+  const [sel,setSel]=useState(null);
+  const grp=GROUPS.find(g=>g.id===sel);
+  return Screen({wide:true,ch:[
+    h("div",{style:{textAlign:"center",marginBottom:28}},
+      Eye({t:"BEFORE WE BEGIN"}),
+      h("h2",{style:{fontFamily:SF,fontSize:28,fontWeight:400,color:TEXT,marginBottom:10}},"Who are you in this story?"),
+      h("p",{style:{fontFamily:SF,fontSize:14,color:BODY,maxWidth:500,margin:"0 auto"}},"Pick the group you identify with or care most about. Your outcome will be revealed first. Scores show how each group is faring in society today (1-100).")
+    ),
+    h("div",{style:{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(200px,1fr))",gap:8,marginBottom:24}},
+      ...GROUPS.map(function(g){
+        var active=sel===g.id;
+        var base=BASE[g.id];
+        var bcolor=scoreColor(base);
+        return h("div",{key:g.id,onClick:()=>setSel(g.id),
+          onMouseEnter:function(e){if(!active)e.currentTarget.style.borderColor=g.color+"77";},
+          onMouseLeave:function(e){if(!active)e.currentTarget.style.borderColor=BORDER;},
+          style:{background:active?g.color+"15":CARD,border:"1px solid "+(active?g.color:BORDER),borderRadius:8,padding:"12px 14px",cursor:"pointer",transition:"all .15s"}},
+          h("p",{style:{fontFamily:MO,fontWeight:700,fontSize:11,color:g.color,marginBottom:4}},g.name),
+          h("p",{style:{fontSize:11,color:MUTED,lineHeight:1.4,marginBottom:8}},g.desc),
+          h("div",{style:{display:"flex",alignItems:"center",gap:6}},
+            h("div",{style:{flex:1,height:4,background:RAISED,borderRadius:2,overflow:"hidden"}},
+              h("div",{style:{height:"100%",width:base+"%",background:bcolor,borderRadius:2}})
+            ),
+            h("span",{style:{fontFamily:MO,fontSize:10,fontWeight:700,color:bcolor,minWidth:20}},base)
+          )
+        );
+      })
+    ),
+    sel&&h("div",{style:{background:CARD,border:"1px solid "+grp.color+"44",borderRadius:10,padding:"14px 20px",marginBottom:20,textAlign:"center"}},
+      h("p",{style:{fontFamily:SF,fontSize:14,color:TEXT,margin:0}},
+        "You are a ",h("strong",{style:{color:grp.color}},grp.name),".",
+        h("span",{style:{color:BODY}}," "+grp.desc+"."),
+        h("span",{style:{color:MUTED,fontFamily:MO,fontSize:11}}," Today's score: "+BASE[sel]+"/100")
+      )
+    ),
+    h("div",{style:{textAlign:"center"}},h(Btn,{label:sel?"CONTINUE →":"SELECT YOUR GROUP TO CONTINUE",onClick:()=>onNext(sel),disabled:!sel}))
+  ]});
+}
+
+function EventScreen({idx,responses,onAnswer,onNext,onBack}){
+  var ev=EVENTS[idx];
+  var saved=responses[idx]||{choice:null,text:""};
+  const [choice,setChoice]=useState(saved.choice);
+  const [text,setText]=useState(saved.text);
+  const ref=useRef(null);
+  useEffect(function(){setChoice(responses[idx]?responses[idx].choice:null);setText(responses[idx]?responses[idx].text:"");},[idx]);
+  function go(){
+    if(!choice)return;
+    onAnswer(idx,{choice,text});
+    onNext();
+  }
+  var choiceObj=ev.choices.find(function(c){return c.v===choice;});
+  return Screen({ch:[
+    // Progress
+    h("div",{style:{display:"flex",alignItems:"center",gap:10,marginBottom:36}},
+      h("span",{style:{fontFamily:MO,fontSize:11,color:MUTED,whiteSpace:"nowrap"}},"EVENT "+(idx+1)+" OF "+EVENTS.length),
+      h("div",{style:{flex:1,display:"flex",gap:3}},
+        ...EVENTS.map(function(_,i){
+          return h("div",{key:i,style:{flex:1,height:2,borderRadius:1,background:i<idx+1?GOLD:"#0F1420",opacity:i===idx?1:i<idx?.6:.2}});
+        })
+      )
+    ),
+    // Title
+    h("div",{style:{display:"flex",alignItems:"center",gap:10,marginBottom:18}},
+      h("span",{style:{fontSize:22}},ev.icon),
+      h("p",{style:{fontFamily:MO,fontSize:13,letterSpacing:"0.15em",color:GOLD}},ev.title.toUpperCase())
+    ),
+    // Context
+    ...ev.body.map(function(p,i){
+      return h("p",{key:i,style:{fontFamily:SF,fontSize:15,color:BODY,lineHeight:1.85,marginBottom:14}},p);
+    }),
+    Div(),
+    // Choice question
+    h("p",{style:{fontFamily:SF,fontSize:16,fontWeight:400,color:TEXT,marginBottom:14}},ev.choiceQ),
+    // Choices
+    h("div",{style:{marginBottom:20}},
+      ...ev.choices.map(function(c){
+        return h(ChoiceBtn,{key:c.v,choice:c,selected:choice===c.v,onClick:function(){setChoice(c.v);}});
+      })
+    ),
+    // Text elaboration
+    h("p",{style:{fontFamily:MO,fontSize:10,color:GOLD,letterSpacing:"0.12em",marginBottom:8}},"TELL US MORE — OPTIONAL"),
+    h("p",{style:{fontFamily:SF,fontSize:14,color:BODY,marginBottom:10}},ev.textQ),
+    h("textarea",{ref,value:text,onChange:function(e){setText(e.target.value);},
+      onKeyDown:function(e){if(e.key==="Enter"&&(e.metaKey||e.ctrlKey))go();},
+      placeholder:"Add nuance, context, or specifics..."}),
+    h("p",{style:{fontFamily:MO,fontSize:10,color:MUTED,marginTop:5,marginBottom:22}},"Ctrl/Cmd + Enter to continue"),
+    // Nav
+    h("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center"}},
+      h(Btn,{label:"← BACK",onClick:onBack,secondary:true}),
+      h(Btn,{label:idx<EVENTS.length-1?"NEXT EVENT →":"BUILD MY WORLD →",onClick:go,disabled:!choice})
+    )
+  ]});
+}
+
+var PROC=["Reading your predictions...","Mapping faction dynamics...","Weighing trigger interactions...","Running group impact models...","Computing scenario probabilities...","Drafting the State of the Union...","Finalizing January 1, 2028..."];
+function ProcessingScreen(){
+  const [li,setLi]=useState(0);
+  useEffect(function(){var t=setInterval(function(){setLi(function(i){return Math.min(i+1,PROC.length-1);});},900);return function(){clearInterval(t);};},[]);
+  return Screen({ch:[
+    h("div",{style:{textAlign:"center"}},
+      h("div",{style:{display:"flex",justifyContent:"center",gap:10,marginBottom:44}},
+        ...[0,1,2,3,4].map(function(i){return h("div",{key:i,style:{width:8,height:8,borderRadius:"50%",background:GOLD,animation:"dot 1.4s "+(i*.22)+"s ease-in-out infinite"}});})
+      ),
+      Eye({t:"ANALYZING YOUR WORLD"}),
+      h("h2",{style:{fontFamily:SF,fontSize:24,fontWeight:400,color:TEXT,marginBottom:36}},"Building January 1, 2028"),
+      h("p",{style:{fontFamily:MO,fontSize:13,color:GOLD,letterSpacing:"0.05em",minHeight:22}},PROC[li])
+    )
+  ]});
+}
+
+function UnionScreen({result,onNext}){
+  var sn={gold:"The Gold Rush",backlash:"The Backlash",stalemate:"The Stalemate"}[result.dominantScenario]||"";
+  var sc={gold:AMB,backlash:"#F43F5E",stalemate:TEAL}[result.dominantScenario]||MUTED;
+  return Screen({ch:[
+    Eye({t:"JANUARY 1, 2028"}),
+    h("div",{style:{textAlign:"center",marginBottom:28}},
+      h("h1",{style:{fontFamily:SF,fontSize:30,fontWeight:400,color:TEXT,marginBottom:14}},"AI State of the Union"),
+      h("span",{style:{background:sc+"22",color:sc,border:"1px solid "+sc+"55",borderRadius:4,fontFamily:MO,fontSize:11,fontWeight:700,letterSpacing:"0.1em",padding:"4px 12px"}},
+        result.dominantScenario.toUpperCase()+" SCENARIO — "+sn)
+    ),
+    h("div",{style:{display:"flex",gap:8,justifyContent:"center",marginBottom:28}},
+      ...[
+        ["gold","🚀",AMB,"The Gold Rush","AI deploys fast with no real guardrails. Capital wins. Labor loses. Tech billionaires get everything they wanted."],
+        ["backlash","🔥","#F43F5E","The Backlash","Visible job losses trigger a political revolt. Democrats win Congress and pass worker protections. The tech industry faces its first real reckoning."],
+        ["stalemate","⚖️",TEAL,"The Stalemate","Washington gridlocks. The EU becomes the de facto global regulator. Courts and state laws create a patchwork nobody controls."]
+      ].map(function(arr){
+        var k=arr[0],icon=arr[1],c=arr[2],name=arr[3],plain=arr[4];
+        var prob=(result.probabilities||{})[k]||0;
+        var isDom=result.dominantScenario===k;
+        return h("div",{key:k,style:{flex:1,background:isDom?c+"18":CARD,border:"2px solid "+(isDom?c:BORDER),borderRadius:10,padding:"16px 14px",textAlign:"center"}},
+          h("div",{style:{fontSize:20,marginBottom:6}},icon),
+          h("div",{style:{fontFamily:MO,fontWeight:700,fontSize:18,color:c,marginBottom:4}},prob+"%"),
+          h("div",{style:{fontFamily:MO,fontWeight:700,fontSize:11,color:isDom?c:BODY,letterSpacing:"0.08em",marginBottom:8}},name.toUpperCase()),
+          h("p",{style:{fontFamily:SF,fontSize:12,color:MUTED,lineHeight:1.55,margin:0}},plain),
+          isDom&&h("div",{style:{marginTop:10,fontFamily:MO,fontSize:9,color:c,letterSpacing:"0.1em"}},"▲ DOMINANT")
+        );
+      })
+    ),
+    h("div",{style:{background:CARD,border:"1px solid "+BORDER,borderRadius:10,padding:"28px 32px",marginBottom:22}},
+      ...(result.stateOfUnion||[]).map(function(p,i){
+        return h("p",{key:i,style:{fontFamily:SF,fontSize:16,lineHeight:1.9,color:i===0?TEXT:BODY,marginBottom:i<(result.stateOfUnion.length-1)?20:0}},p);
+      })
+    ),
+    h("div",{style:{background:GOLD+"12",border:"1px solid "+GOLD+"33",borderRadius:8,padding:"14px 18px",marginBottom:28}},
+      h("p",{style:{fontFamily:MO,fontSize:10,letterSpacing:"0.15em",color:GOLD,marginBottom:5}},"KEY INSIGHT"),
+      h("p",{style:{fontFamily:SF,fontSize:14,color:TEXT,lineHeight:1.7,margin:0}},result.keyInsight)
+    ),
+    h("div",{style:{textAlign:"center"}},h(Btn,{label:"YOUR OUTCOME →",onClick:onNext}))
+  ]});
+}
+
+function GroupScreen({result,chosenId,onNext,onBack}){
+  var grp=GROUPS.find(function(g){return g.id===chosenId;})||GROUPS[0];
+  var gd=(result.groups||[]).find(function(g){return g.id===chosenId;})||{score:BASE[chosenId]||50,headline:"",note:""};
+  var base=BASE[chosenId]||50;
+  var delta=gd.score-base;
+  var dc=deltaColor(delta);
+  return Screen({ch:[
+    Eye({t:"YOUR OUTCOME"}),
+    h("h2",{style:{fontFamily:SF,fontSize:26,fontWeight:400,color:grp.color,textAlign:"center",marginBottom:5}},grp.name),
+    h("p",{style:{fontFamily:SF,fontSize:14,color:BODY,textAlign:"center",marginBottom:28}},grp.desc),
+    // Big score display
+    h("div",{style:{display:"flex",gap:12,marginBottom:22}},
+      h("div",{style:{flex:1,background:CARD,borderRadius:10,padding:"20px",textAlign:"center",border:"1px solid #3A4A6A"}},
+        h("p",{style:{fontFamily:MO,fontSize:10,color:MUTED,letterSpacing:"0.15em",marginBottom:8}},"TODAY"),
+        h("p",{style:{fontFamily:MO,fontWeight:700,fontSize:40,color:"#6A8AB0",marginBottom:4}},base),
+        h("div",{style:{height:6,background:RAISED,borderRadius:3,overflow:"hidden"}},
+          h("div",{style:{height:"100%",width:base+"%",background:"#3A4A6A",borderRadius:3}})
+        )
+      ),
+      h("div",{style:{display:"flex",alignItems:"center",justifyContent:"center",flexDirection:"column",gap:4,padding:"0 8px"}},
+        h("div",{style:{fontFamily:MO,fontSize:20,color:dc}},delta>0?"→":"→"),
+        h("div",{style:{fontFamily:MO,fontWeight:700,fontSize:14,color:dc}},deltaSign(delta)+delta)
+      ),
+      h("div",{style:{flex:1,background:CARD,borderRadius:10,padding:"20px",textAlign:"center",border:"1px solid "+grp.color+"44"}},
+        h("p",{style:{fontFamily:MO,fontSize:10,color:MUTED,letterSpacing:"0.15em",marginBottom:8}},"JANUARY 1, 2028"),
+        h("p",{style:{fontFamily:MO,fontWeight:700,fontSize:40,color:scoreColor(gd.score),marginBottom:4}},gd.score),
+        h("div",{style:{height:6,background:RAISED,borderRadius:3,overflow:"hidden"}},
+          h("div",{style:{height:"100%",width:gd.score+"%",background:scoreColor(gd.score),borderRadius:3,transition:"width 1s ease"}})
+        )
+      )
+    ),
+    gd.headline&&h("p",{style:{fontFamily:SF,fontSize:18,color:dc,textAlign:"center",marginBottom:16,fontStyle:"italic"}},'"'+gd.headline+'"'),
+    h("div",{style:{background:CARD,border:"1px solid "+grp.color+"33",borderRadius:10,padding:"22px 26px",marginBottom:22}},
+      h("p",{style:{fontFamily:SF,fontSize:16,color:TEXT,lineHeight:1.9,margin:0}},result.chosenGroupNarrative)
+    ),
+    h("p",{style:{fontFamily:MO,fontSize:10,color:MUTED,textAlign:"center",marginBottom:26,lineHeight:1.6}},"Score: 1 (dire) to 100 (thriving). Reflects economic security, employment stability, and income."),
+    h("div",{style:{display:"flex",justifyContent:"space-between"}},
+      h(Btn,{label:"← BACK",onClick:onBack,secondary:true}),
+      h(Btn,{label:"SEE ALL 14 GROUPS →",onClick:onNext})
+    )
+  ]});
+}
+
+function AllGroupsScreen({result,chosenId,onNext,onBack}){
+  var sorted=[...(result.groups||[])].sort(function(a,b){return b.score-a.score;});
+  const [expanded,setExpanded]=useState(chosenId);
+  function toggle(id){setExpanded(function(cur){return cur===id?null:id;});}
+  return Screen({wide:true,ch:[
+    h("div",{style:{textAlign:"center",marginBottom:28}},
+      Eye({t:"JANUARY 1, 2028"}),
+      h("h2",{style:{fontFamily:SF,fontSize:26,fontWeight:400,color:TEXT,marginBottom:7}},"How all 14 groups fared"),
+      h("p",{style:{fontFamily:SF,fontSize:14,color:BODY}},"Sorted best to worst. Click any card to expand. Grey bar = today. Colored bar = 2028.")
+    ),
+    h("div",{style:{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(260px,1fr))",gap:10,marginBottom:36}},
+      ...sorted.map(function(gd){
+        var grp=GROUPS.find(function(g){return g.id===gd.id;});
+        if(!grp)return null;
+        var base=BASE[gd.id]||50;
+        var delta=gd.score-base;
+        var dc=deltaColor(delta);
+        var isMe=gd.id===chosenId;
+        var isOpen=expanded===gd.id;
+        return h("div",{key:gd.id,
+          onClick:function(){toggle(gd.id);},
+          style:{background:isOpen?grp.color+"12":CARD,border:"1px solid "+(isOpen||isMe?grp.color:BORDER),borderRadius:10,padding:"14px 16px",
+                 boxShadow:isOpen?"0 0 0 2px "+grp.color+"66":isMe?"0 0 0 2px "+grp.color+"44":"none",
+                 cursor:"pointer",transition:"all .2s"}},
+          h("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:6}},
+            h("div",{style:{flex:1,marginRight:8}},
+              h("p",{style:{fontFamily:MO,fontWeight:700,fontSize:11,color:isOpen||isMe?grp.color:BODY,marginBottom:2}},(isMe?"★ ":"")+grp.name),
+              gd.headline&&h("p",{style:{fontFamily:SF,fontSize:11,color:dc,fontStyle:"italic",margin:0}},gd.headline)
+            ),
+            h("div",{style:{display:"flex",alignItems:"center",gap:6,flexShrink:0}},
+              h("div",{style:{textAlign:"right"}},
+                h("span",{style:{fontFamily:MO,fontWeight:700,fontSize:17,color:scoreColor(gd.score)}},gd.score),
+                h("span",{style:{fontFamily:MO,fontSize:10,color:dc,marginLeft:4}},deltaSign(delta)+delta)
+              ),
+              h("span",{style:{color:MUTED,fontSize:11,marginLeft:4,userSelect:"none"}},isOpen?"▲":"▼")
+            )
+          ),
+          h(ScoreBars,{base:base,final:gd.score,color:grp.color}),
+          isOpen&&h("div",{style:{marginTop:12,paddingTop:12,borderTop:"1px solid "+BORDER}},
+            h("p",{style:{fontFamily:MO,fontSize:10,color:MUTED,letterSpacing:"0.1em",marginBottom:5}},"WHO THEY ARE"),
+            h("p",{style:{fontFamily:SF,fontSize:12,color:BODY,lineHeight:1.5,marginBottom:gd.note?10:0}},grp.desc),
+            gd.note&&h("div",null,
+              h("p",{style:{fontFamily:MO,fontSize:10,color:MUTED,letterSpacing:"0.1em",marginBottom:4,marginTop:8}},"WHAT HAPPENED"),
+              h("p",{style:{fontFamily:SF,fontSize:13,color:TEXT,lineHeight:1.6,margin:0}},gd.note)
+            )
+          )
+        );
+      })
+    ),
+    h("div",{style:{display:"flex",justifyContent:"space-between"}},
+      h(Btn,{label:"← BACK",onClick:onBack,secondary:true}),
+      h(Btn,{label:"SEE WHO WON POLITICALLY →",onClick:onNext})
+    )
+  ]});
+}
+
+function FactionsScreen({result,responses,chosenId,onReplay,onBack}){
+  const [copied,setCopied]=useState(false);
+  var oc=function(o){return {"Win":GRN,"Partial Win":"#34D399","Draw":MUTED,"Partial Loss":RED,"Loss":"#EF4444"}[o]||MUTED;};
+  var probs=result.probabilities||{gold:35,backlash:25,stalemate:40};
+  var sc={gold:AMB,backlash:"#F43F5E",stalemate:TEAL}[result.dominantScenario]||MUTED;
+  var sl={gold:"The Gold Rush",backlash:"The Backlash",stalemate:"The Stalemate"}[result.dominantScenario]||"";
+  var grp=GROUPS.find(function(g){return g.id===chosenId;})||GROUPS[0];
+
+  function doCopy(){
+    var lines=[
+      "AI FACTIONS: THE SIMULATION",
+      "Played: "+(new Date().toLocaleDateString()),
+      "Your Group: "+grp.name,
+      "",
+      "=== YOUR 9 PREDICTIONS ===",""
+    ];
+    EVENTS.forEach(function(ev,i){
+      var r=responses[i]||{};
+      var cobj=ev.choices.find(function(c){return c.v===r.choice;});
+      lines.push((i+1)+". "+ev.title);
+      lines.push("   Call: "+(cobj?cobj.label+": "+cobj.desc:"—"));
+      if(r.text)lines.push("   View: "+r.text);
+      lines.push("");
+    });
+    lines.push("=== THE WORLD ON JANUARY 1, 2028 ===","");
+    lines.push("Dominant Scenario: "+sl+" (Gold Rush "+probs.gold+"% | Backlash "+probs.backlash+"% | Stalemate "+probs.stalemate+"%)","");
+    (result.stateOfUnion||[]).forEach(function(p){lines.push(p);lines.push("");});
+    lines.push("Key Insight: "+result.keyInsight,"");
+    lines.push("=== YOUR OUTCOME: "+grp.name.toUpperCase()+" ===","");
+    var gd=(result.groups||[]).find(function(g){return g.id===chosenId;})||{score:50};
+    lines.push(result.chosenGroupNarrative||"");
+    lines.push("Score: "+BASE[chosenId]+" today → "+gd.score+" in 2028 ("+(gd.score-BASE[chosenId]>0?"+":"")+(gd.score-BASE[chosenId])+" pts)","");
+    lines.push("=== ALL 14 GROUPS ===","");
+    var sorted=[...(result.groups||[])].sort(function(a,b){return b.score-a.score;});
+    sorted.forEach(function(g){
+      var grpd=GROUPS.find(function(x){return x.id===g.id;});
+      var base=BASE[g.id]||50;
+      var d=g.score-base;
+      lines.push((grpd?grpd.name:g.id)+": "+base+" → "+g.score+" ("+(d>=0?"+":"")+d+")");
+    });
+    lines.push("","=== FACTION VERDICTS ===","");
+    (result.factions||[]).forEach(function(f){
+      lines.push(f.code+" "+f.name+": "+f.outcome+" — "+f.reason);
+    });
+    var txt=lines.join("\n");
+    try{
+      if(navigator.clipboard&&window.isSecureContext){
+        navigator.clipboard.writeText(txt).then(function(){setCopied(true);setTimeout(function(){setCopied(false);},2500);}).catch(fallback);
+      } else { fallback(); }
+    } catch(e){ fallback(); }
+    function fallback(){
+      var ta=document.createElement("textarea");
+      ta.value=txt;
+      ta.style.cssText="position:fixed;top:0;left:0;opacity:0;pointer-events:none";
+      document.body.appendChild(ta);
+      ta.focus();ta.select();
+      try{ document.execCommand("copy"); setCopied(true); setTimeout(function(){setCopied(false);},2500); }
+      catch(e){ alert("Copy failed — please select all text below and copy manually:\n\n"+txt.slice(0,300)+"..."); }
+      document.body.removeChild(ta);
+    }
+  }
+
+  return Screen({ch:[
+    h("div",{style:{textAlign:"center",marginBottom:28}},
+      Eye({t:"THE POLITICAL VERDICT"}),
+      h("h2",{style:{fontFamily:SF,fontSize:26,fontWeight:400,color:TEXT,marginBottom:18}},"Who won and who lost"),
+      h("div",{style:{display:"flex",gap:8,justifyContent:"center",marginBottom:10}},
+        ...[["gold","🚀",AMB],["backlash","🔥","#F43F5E"],["stalemate","⚖️",TEAL]].map(function(arr){
+          var k=arr[0],icon=arr[1],c=arr[2];
+          return h("div",{key:k,style:{background:result.dominantScenario===k?c+"22":CARD,border:"1px solid "+(result.dominantScenario===k?c:BORDER),borderRadius:8,padding:"8px 14px",textAlign:"center",minWidth:95}},
+            h("div",{style:{fontSize:15,marginBottom:3}},icon),
+            h("div",{style:{fontFamily:MO,fontWeight:700,fontSize:14,color:c}},probs[k]+"%"),
+            h("div",{style:{fontFamily:MO,fontSize:9,color:MUTED,letterSpacing:"0.1em",marginTop:1}},k.toUpperCase())
+          );
+        })
+      ),
+      h("p",{style:{fontFamily:SF,fontSize:13,color:BODY}},"Dominant: ",h("span",{style:{color:sc}},sl))
+    ),
+    // Factions list
+    h("div",{style:{marginBottom:28}},
+      ...(result.factions||[]).map(function(f){
+        return h("div",{key:f.code,style:{display:"flex",alignItems:"flex-start",gap:12,padding:"11px 0",borderBottom:"1px solid "+BORDER}},
+          h("span",{style:{fontFamily:MO,fontWeight:700,fontSize:11,color:MUTED,minWidth:26}},f.code),
+          h("div",{style:{flex:1}},
+            h("p",{style:{fontFamily:MO,fontWeight:700,fontSize:11,color:BODY,marginBottom:3}},f.name),
+            h("p",{style:{fontFamily:SF,fontSize:12,color:MUTED,lineHeight:1.5,margin:0}},f.reason)
+          ),
+          h("span",{style:{background:oc(f.outcome)+"22",color:oc(f.outcome),border:"1px solid "+oc(f.outcome)+"44",borderRadius:4,fontFamily:MO,fontSize:9,fontWeight:700,letterSpacing:"0.08em",padding:"3px 7px",whiteSpace:"nowrap"}},
+            f.outcome?f.outcome.toUpperCase():"—")
+        );
+      })
+    ),
+    // Key insight
+    h("div",{style:{background:CARD,border:"1px solid "+BORDER,borderRadius:10,padding:"20px 24px",marginBottom:28}},
+      h("p",{style:{fontFamily:MO,fontSize:10,letterSpacing:"0.15em",color:GOLD,marginBottom:7}},"YOUR WORLD IN ONE SENTENCE"),
+      h("p",{style:{fontFamily:SF,fontSize:15,color:TEXT,lineHeight:1.8,margin:0}},result.keyInsight)
+    ),
+    // Save & replay
+    h("div",{style:{background:RAISED,border:"1px solid "+BORDER,borderRadius:10,padding:"18px 24px",marginBottom:28}},
+      h("p",{style:{fontFamily:MO,fontSize:10,letterSpacing:"0.15em",color:MUTED,marginBottom:10}},"SAVE YOUR RESULTS"),
+      h("p",{style:{fontFamily:SF,fontSize:13,color:BODY,marginBottom:14,lineHeight:1.6}},"Copy a complete report of your 9 predictions, all group outcomes, and faction verdicts to paste or share anywhere."),
+      h("div",{style:{display:"flex",gap:10,alignItems:"center"}},
+        h(Btn,{label:copied?"✓ COPIED!":"COPY FULL REPORT",onClick:doCopy,secondary:false}),
+        copied&&h("span",{style:{fontFamily:MO,fontSize:11,color:GRN}},"Report copied to clipboard")
+      )
+    ),
+    h("div",{style:{display:"flex",gap:12,justifyContent:"center"}},
+      h(Btn,{label:"← BACK",onClick:onBack,secondary:true}),
+      h(Btn,{label:"PLAY AGAIN",onClick:onReplay,secondary:true})
+    )
+  ]});
+}
+
+function ErrScreen({error,onRetry}){
+  return Screen({ch:[
+    h("div",{style:{textAlign:"center"}},
+      Eye({t:"SOMETHING WENT WRONG"}),
+      h("h2",{style:{fontFamily:SF,fontSize:22,fontWeight:400,color:TEXT,marginBottom:14}},"The simulation failed"),
+      h("p",{style:{fontFamily:SF,fontSize:14,color:BODY,marginBottom:28,lineHeight:1.7,maxWidth:400,margin:"0 auto 28px"}},error||"Please try again."),
+      h(Btn,{label:"TRY AGAIN →",onClick:onRetry})
+    )
+  ]});
+}
+
+// ── APP ───────────────────────────────────────────────────────────────────────
+function App(){
+  const [phase,setPhase]=useState("intro");
+  const [history,setHistory]=useState([]);
+  const [chosenId,setChosenId]=useState(null);
+  const [responses,setResponses]=useState(Array(EVENTS.length).fill(null));
+  const [evIdx,setEvIdx]=useState(0);
+  const [result,setResult]=useState(null);
+  const [error,setError]=useState(null);
+
+  function goTo(next){setHistory(function(h){return [...h,phase];});setPhase(next);}
+  function goBack(){
+    if(history.length===0)return;
+    var prev=history[history.length-1];
+    setHistory(function(h){return h.slice(0,-1);});
+    setPhase(prev);
+  }
+
+  function answer(idx,data){
+    setResponses(function(prev){var n=[...prev];n[idx]=data;return n;});
+  }
+  function nextEvent(){
+    if(evIdx<EVENTS.length-1){setEvIdx(function(i){return i+1;});}
+    else{setPhase("processing");simulate();}
+  }
+  function prevEvent(){
+    if(evIdx>0){setEvIdx(function(i){return i-1;});}
+    else{goBack();}
+  }
+  async function simulate(){
+    setError(null);
+    var grp=GROUPS.find(function(g){return g.id===chosenId;})||GROUPS[0];
+    var lines=["Player group: "+grp.name+" — "+grp.desc,""];
+    EVENTS.forEach(function(ev,i){
+      var r=responses[i]||{};
+      var cobj=ev.choices.find(function(c){return c.v===r.choice;});
+      lines.push("EVENT "+(i+1)+" "+ev.title.toUpperCase()+":");
+      lines.push("Choice: "+(cobj?cobj.label+" ("+cobj.desc+")":"not answered"));
+      if(r.text)lines.push("Player elaboration: "+r.text);
+      lines.push("");
+    });
+    lines.push("Return only the JSON object.");
+    var msg=lines.join("\n");
+    try{
+      var res=await fetch("https://api.anthropic.com/v1/messages",{
+        method:"POST",headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:3000,system:buildPrompt(),messages:[{role:"user",content:msg}]})
+      });
+      var data=await res.json();
+      var parsed=xj(data.content?.[0]?.text||"");
+      if(!parsed)throw new Error("Could not parse simulation output. Please try again.");
+      setResult(parsed);setHistory([]);setPhase("union");
+    }catch(e){setError(e.message||"Simulation failed.");setPhase("error");}
+  }
+  function replay(){setPhase("intro");setHistory([]);setChosenId(null);setResponses(Array(EVENTS.length).fill(null));setEvIdx(0);setResult(null);setError(null);}
+
+  if(phase==="intro")      return h(IntroScreen,{onNext:function(){goTo("choose");}});
+  if(phase==="choose")     return h(ChooseScreen,{onNext:function(id){setChosenId(id);goTo("events");},onBack:goBack});
+  if(phase==="events")     return h(EventScreen,{idx:evIdx,responses,onAnswer:answer,onNext:nextEvent,onBack:prevEvent});
+  if(phase==="processing") return h(ProcessingScreen,null);
+  if(phase==="error")      return h(ErrScreen,{error,onRetry:function(){setPhase("processing");simulate();}});
+  if(phase==="union")      return h(UnionScreen,{result,onNext:function(){goTo("group");}});
+  if(phase==="group")      return h(GroupScreen,{result,chosenId,onNext:function(){goTo("all");},onBack:goBack});
+  if(phase==="all")        return h(AllGroupsScreen,{result,chosenId,onNext:function(){goTo("factions");},onBack:goBack});
+  if(phase==="factions")   return h(FactionsScreen,{result,responses,chosenId,onReplay:replay,onBack:goBack});
+  return null;
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(h(App,null));
+</script>
+</body>
+</html>
