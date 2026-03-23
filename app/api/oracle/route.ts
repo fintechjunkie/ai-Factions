@@ -16,7 +16,7 @@ export async function POST(req: NextRequest) {
     const client = new Anthropic();
 
     const response = await client.messages.create({
-      model: 'claude-sonnet-4-5-20250514',
+      model: 'claude-sonnet-4-5-20241022',
       max_tokens: 2000,
       system: ORACLE_SYSTEM_PROMPT,
       messages: messages.map((m: { role: string; content: string }) => ({

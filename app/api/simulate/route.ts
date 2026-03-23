@@ -40,7 +40,7 @@ export async function POST(req: NextRequest) {
     const client = new Anthropic();
 
     const message = await client.messages.create({
-      model: 'claude-sonnet-4-5-20250514',
+      model: 'claude-sonnet-4-5-20241022',
       max_tokens: 3000,
       system: SIMULATE_PROMPT,
       messages: [{ role: 'user', content: userMessage }],
