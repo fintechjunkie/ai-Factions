@@ -44,12 +44,18 @@ export default function PlayPage() {
   const [text, setText] = useState('');
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  // Sync local state when event index changes
+  // Sync local state when event index changes + scroll to top
   useEffect(() => {
     const saved = responses[evIdx];
     setChoice(saved?.choice ?? null);
     setText(saved?.text ?? '');
+    window.scrollTo(0, 0);
   }, [evIdx, responses]);
+
+  // Scroll to top on phase changes
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [phase]);
 
   function goTo(next: Phase) {
     setHistory((h) => [...h, phase]);
@@ -73,12 +79,14 @@ export default function PlayPage() {
 
   function nextEvent() {
     if (!choice) return;
-    answer(evIdx, { choice, text });
+    const updatedResponses = [...responses];
+    updatedResponses[evIdx] = { choice, text };
+    setResponses(updatedResponses);
     if (evIdx < EVENTS.length - 1) {
       setEvIdx((i) => i + 1);
     } else {
       setPhase('processing');
-      simulate();
+      simulate(updatedResponses);
     }
   }
 
@@ -93,9 +101,10 @@ export default function PlayPage() {
     }
   }
 
-  async function simulate() {
+  async function simulate(finalResponses?: (PlayerResponse | null)[]) {
     setError(null);
     const grp = GROUPS.find((g) => g.id === chosenId) || GROUPS[0];
+    const responsesToSend = finalResponses || responses;
 
     try {
       const res = await fetch('/api/simulate', {
@@ -105,7 +114,7 @@ export default function PlayPage() {
           groupId: chosenId,
           groupName: grp.name,
           groupDesc: grp.desc,
-          responses: responses,
+          responses: responsesToSend,
         }),
       });
 
@@ -139,27 +148,29 @@ export default function PlayPage() {
   // ── INTRO ──
   if (phase === 'intro') {
     return (
-      <div className="min-h-screen bg-bg flex flex-col items-center justify-center px-5 py-12">
+      <div className="min-h-screen bg-bg grid-bg flex flex-col items-center justify-center px-5 py-12">
         <div className="w-full max-w-[680px] animate-[fadeIn_0.4s_ease_forwards]">
-          <p className="font-mono text-[11px] tracking-[0.2em] text-muted uppercase text-center mb-3.5">
-            MARCH 2026
-          </p>
-          <h1 className="font-serif text-4xl font-normal text-text text-center leading-[1.25] mb-9">
-            The world is mid-transformation.
-          </h1>
-          <div className="h-px bg-border my-5" />
-          <p className="font-serif text-base leading-[1.85] text-body mb-4">
-            Artificial intelligence has moved from science fiction to the infrastructure of daily life in less than four years. The productivity gains are real. They are flowing almost entirely to the people who own the technology.
-          </p>
-          <p className="font-serif text-base leading-[1.85] text-body mb-4">
-            Ten factions are fighting to shape what comes next. Tech billionaires, labor unions, European regulators, military officials, artists — each with their own vision for the future.
-          </p>
-          <p className="font-serif text-base leading-[1.85] text-text mb-0">
-            Nine events over the next two years will determine what kind of world exists on January 1, 2028. You will predict each one. The simulation will build the world your predictions produce.
-          </p>
-          <div className="h-px bg-border my-5" />
-          <div className="text-center">
-            <Btn label="BEGIN →" onClick={() => goTo('choose_group')} />
+          <div className="cyber-frame scanlines px-10 py-10">
+            <p className="font-mono text-[11px] tracking-[0.2em] text-gold/60 uppercase text-center mb-6">
+              MARCH 2026 — SIMULATION TERMINAL
+            </p>
+            <h1 className="font-serif text-4xl font-normal text-text text-center leading-[1.25] mb-9">
+              The world is mid-transformation.
+            </h1>
+            <div className="h-px bg-gradient-to-r from-transparent via-gold/20 to-transparent my-6" />
+            <p className="font-serif text-base leading-[1.85] text-body mb-4">
+              Artificial intelligence has moved from science fiction to the infrastructure of daily life in less than four years. The productivity gains are real. They are flowing almost entirely to the people who own the technology.
+            </p>
+            <p className="font-serif text-base leading-[1.85] text-body mb-4">
+              Ten factions are fighting to shape what comes next. Tech billionaires, labor unions, European regulators, military officials, artists — each with their own vision for the future.
+            </p>
+            <p className="font-serif text-base leading-[1.85] text-text mb-0">
+              Nine events over the next two years will determine what kind of world exists on January 1, 2028. You will predict each one. The simulation will build the world your predictions produce.
+            </p>
+            <div className="h-px bg-gradient-to-r from-transparent via-gold/20 to-transparent my-6" />
+            <div className="text-center">
+              <Btn label="BEGIN →" onClick={() => goTo('choose_group')} />
+            </div>
           </div>
         </div>
       </div>
@@ -252,104 +263,113 @@ export default function PlayPage() {
   if (phase === 'events') {
     const ev = EVENTS[evIdx];
     return (
-      <div className="min-h-screen bg-bg flex flex-col items-center justify-center px-5 py-12">
-        <div className="w-full max-w-[680px] animate-[fadeIn_0.4s_ease_forwards]">
-          {/* Progress bar */}
-          <div className="flex items-center gap-2.5 mb-9">
-            <span className="font-mono text-[11px] text-muted whitespace-nowrap">
-              EVENT {evIdx + 1} OF {EVENTS.length}
+      <div className="min-h-screen bg-bg grid-bg flex flex-col items-center justify-start px-5 py-10">
+        <div className="w-full max-w-[720px] animate-[fadeIn_0.4s_ease_forwards]">
+          {/* Progress bar — top level */}
+          <div className="flex items-center gap-2.5 mb-6">
+            <span className="font-mono text-[11px] text-gold/80 whitespace-nowrap">
+              {evIdx + 1} / {EVENTS.length}
             </span>
-            <div className="flex-1 flex gap-0.5">
+            <div className="flex-1 flex gap-1">
               {EVENTS.map((_, i) => (
                 <div
                   key={i}
-                  className="flex-1 h-0.5 rounded-sm"
+                  className="flex-1 h-1 rounded-sm transition-all duration-300"
                   style={{
-                    background: i < evIdx + 1 ? '#C9A84C' : '#0F1420',
-                    opacity: i === evIdx ? 1 : i < evIdx ? 0.6 : 0.2,
+                    background: i <= evIdx ? '#C9A84C' : '#161E2C',
+                    boxShadow: i === evIdx ? '0 0 6px rgba(201,168,76,0.5)' : 'none',
                   }}
                 />
               ))}
             </div>
           </div>
 
-          {/* Title */}
-          <div className="flex items-center gap-2.5 mb-4.5">
-            <span className="text-[22px]">{ev.icon}</span>
-            <p className="font-mono text-[13px] tracking-[0.15em] text-gold">
-              {ev.title.toUpperCase()}
-            </p>
-            {ev.relatedTriggerIds[0] && (
-              <WorldPanelButton
-                context={{ type: 'trigger', id: ev.relatedTriggerIds[0] }}
-                label="◎ Analysis"
-                className="ml-auto text-[9px]"
-              />
-            )}
-          </div>
-
-          {/* Context */}
-          {ev.body.map((p, i) => (
-            <p key={i} className="font-serif text-[15px] text-body leading-[1.85] mb-3.5">
-              {p}
-            </p>
-          ))}
-
-          {/* Related factions */}
-          {ev.relatedFactionIds.length > 0 && (
-            <div className="flex items-center gap-1.5 mb-3">
-              <span className="font-mono text-[9px] text-muted tracking-[0.08em]">RELATED:</span>
-              {ev.relatedFactionIds.map((fid) => {
-                const f = FACTIONS.find((x) => x.id === fid);
-                if (!f) return null;
-                return (
-                  <WorldPanelButton
-                    key={fid}
-                    context={{ type: 'faction', id: fid }}
-                    label={f.code}
-                    className="!text-[9px] rounded px-1.5 py-0.5"
-                    // style applied via inline for dynamic color
-                  />
-                );
-              })}
+          {/* Main frame */}
+          <div className="cyber-frame scanlines px-8 py-7 mb-6">
+            {/* Title bar */}
+            <div className="flex items-center gap-3 mb-5 pb-4 border-b border-gold/10">
+              <span className="text-2xl">{ev.icon}</span>
+              <div className="flex-1">
+                <p className="font-mono text-[13px] tracking-[0.15em] text-gold font-bold">
+                  {ev.title.toUpperCase()}
+                </p>
+                <p className="font-mono text-[9px] text-muted tracking-[0.1em] mt-0.5">
+                  EVENT {evIdx + 1} — SCENARIO ANALYSIS 2026-2027
+                </p>
+              </div>
+              {ev.relatedTriggerIds[0] && (
+                <WorldPanelButton
+                  context={{ type: 'trigger', id: ev.relatedTriggerIds[0] }}
+                  label="◎ DEEP ANALYSIS"
+                  className="text-[9px] border border-gold/20 rounded px-2 py-1 hover:border-gold/50"
+                />
+              )}
             </div>
-          )}
 
-          <div className="h-px bg-border my-5" />
+            {/* Context paragraphs */}
+            <div className="mb-5">
+              {ev.body.map((p, i) => (
+                <p key={i} className="font-serif text-[15px] text-body leading-[1.85] mb-3">
+                  {p}
+                </p>
+              ))}
+            </div>
 
-          {/* Choice question */}
-          <p className="font-serif text-base font-normal text-text mb-3.5">{ev.choiceQ}</p>
+            {/* Related factions */}
+            {ev.relatedFactionIds.length > 0 && (
+              <div className="flex items-center gap-1.5 mb-5 pb-4 border-b border-border">
+                <span className="font-mono text-[9px] text-muted tracking-[0.1em]">FACTIONS INVOLVED:</span>
+                {ev.relatedFactionIds.map((fid) => {
+                  const f = FACTIONS.find((x) => x.id === fid);
+                  if (!f) return null;
+                  return (
+                    <WorldPanelButton
+                      key={fid}
+                      context={{ type: 'faction', id: fid }}
+                      label={f.code}
+                      className="!text-[9px] bg-raised rounded px-2 py-0.5 border border-border hover:border-gold/40"
+                    />
+                  );
+                })}
+              </div>
+            )}
 
-          {/* Choices */}
-          <div className="mb-5">
-            {ev.choices.map((c) => (
-              <ChoiceButton
-                key={c.v}
-                choice={c}
-                selected={choice === c.v}
-                onClick={() => setChoice(c.v)}
+            {/* Choice question */}
+            <p className="font-serif text-lg font-normal text-text mb-4">{ev.choiceQ}</p>
+
+            {/* Choices */}
+            <div className="mb-5">
+              {ev.choices.map((c) => (
+                <ChoiceButton
+                  key={c.v}
+                  choice={c}
+                  selected={choice === c.v}
+                  onClick={() => setChoice(c.v)}
+                />
+              ))}
+            </div>
+
+            {/* Text elaboration */}
+            <div className="bg-raised/50 rounded-lg p-4 border border-border">
+              <p className="font-mono text-[10px] text-gold tracking-[0.12em] mb-2">
+                TELL US MORE — OPTIONAL
+              </p>
+              <p className="font-serif text-sm text-body mb-2.5">{ev.textQ}</p>
+              <textarea
+                ref={textareaRef}
+                value={text}
+                onChange={(e) => setText(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) nextEvent();
+                }}
+                placeholder="Add nuance, context, or specifics..."
+                className="bg-card border border-border rounded-lg text-text font-serif text-sm leading-[1.75] p-3 resize-y w-full min-h-[80px]"
               />
-            ))}
+              <p className="font-mono text-[9px] text-muted mt-1.5">Ctrl/Cmd + Enter to continue</p>
+            </div>
           </div>
 
-          {/* Text elaboration */}
-          <p className="font-mono text-[10px] text-gold tracking-[0.12em] mb-2">
-            TELL US MORE — OPTIONAL
-          </p>
-          <p className="font-serif text-sm text-body mb-2.5">{ev.textQ}</p>
-          <textarea
-            ref={textareaRef}
-            value={text}
-            onChange={(e) => setText(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) nextEvent();
-            }}
-            placeholder="Add nuance, context, or specifics..."
-            className="bg-card border border-border rounded-lg text-text font-serif text-sm leading-[1.75] p-3 resize-y w-full min-h-[90px]"
-          />
-          <p className="font-mono text-[10px] text-muted mt-1 mb-5">Ctrl/Cmd + Enter to continue</p>
-
-          {/* Nav */}
+          {/* Nav — outside the frame */}
           <div className="flex justify-between items-center">
             <BackButton onClick={prevEvent} />
             <Btn

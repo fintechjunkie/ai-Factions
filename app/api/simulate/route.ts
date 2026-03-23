@@ -15,8 +15,16 @@ export async function POST(req: NextRequest) {
     }
 
     const formattedResponses = responses.map(
-      (r: { choice: string; text: string }, i: number) => {
+      (r: { choice: string; text: string } | null, i: number) => {
         const event = EVENTS[i];
+        if (!r) {
+          return {
+            eventTitle: event?.title ?? `Event ${i + 1}`,
+            choiceLabel: 'not answered',
+            choiceDesc: '',
+            text: '',
+          };
+        }
         const choiceObj = event?.choices.find((c) => c.v === r.choice);
         return {
           eventTitle: event?.title ?? `Event ${i + 1}`,

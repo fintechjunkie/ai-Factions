@@ -46,3 +46,94 @@ textarea:focus {
 textarea::placeholder {
   color: #4A5570;
 }
+
+/* Cyberpunk frame */
+.cyber-frame {
+  position: relative;
+  border: 1px solid #C9A84C33;
+  border-radius: 12px;
+  background: linear-gradient(180deg, #0C101800 0%, #0C101866 100%), #07090F;
+  box-shadow:
+    0 0 30px rgba(201, 168, 76, 0.04),
+    inset 0 1px 0 rgba(201, 168, 76, 0.08);
+}
+
+.cyber-frame::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 24px;
+  right: 24px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #C9A84C44, transparent);
+}
+
+.cyber-frame::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 24px;
+  right: 24px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #C9A84C22, transparent);
+}
+
+/* Corner accents for the frame */
+.cyber-corners {
+  position: relative;
+}
+.cyber-corners::before,
+.cyber-corners::after {
+  content: '';
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  border-color: #C9A84C44;
+  border-style: solid;
+}
+.cyber-corners::before {
+  top: -1px;
+  left: -1px;
+  border-width: 1px 0 0 1px;
+  border-radius: 12px 0 0 0;
+}
+.cyber-corners::after {
+  top: -1px;
+  right: -1px;
+  border-width: 1px 1px 0 0;
+  border-radius: 0 12px 0 0;
+}
+
+/* Scanline overlay (subtle) */
+.scanlines {
+  position: relative;
+}
+.scanlines::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(201, 168, 76, 0.015) 2px,
+    rgba(201, 168, 76, 0.015) 4px
+  );
+  pointer-events: none;
+  border-radius: 12px;
+  z-index: 1;
+}
+
+/* Glow pulse for progress bar segments */
+@keyframes glowPulse {
+  0%, 100% { box-shadow: 0 0 4px rgba(201, 168, 76, 0.3); }
+  50% { box-shadow: 0 0 8px rgba(201, 168, 76, 0.6); }
+}
+
+/* Grid background pattern */
+.grid-bg {
+  background-image:
+    linear-gradient(rgba(201, 168, 76, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(201, 168, 76, 0.03) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
