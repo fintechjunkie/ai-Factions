@@ -18,6 +18,7 @@ import UnionScreen from '@/components/play/UnionScreen';
 import GroupReveal from '@/components/play/GroupReveal';
 import AllGroupsGrid from '@/components/play/AllGroupsGrid';
 import FactionsVerdict from '@/components/play/FactionsVerdict';
+import IntroScreen from '@/components/play/IntroScreen';
 
 type Phase =
   | 'intro'
@@ -158,50 +159,7 @@ export default function PlayPage() {
 
   // ── INTRO ──
   if (phase === 'intro') {
-    return (
-      <div className="min-h-screen bg-bg grid-bg flex flex-col items-center justify-center px-5 py-12">
-        <div className="w-full max-w-[720px]">
-          <div className="cyber-frame border-flow scanlines px-10 py-10">
-            {/* Terminal header bar */}
-            <div className="flex items-center gap-2 mb-6 pb-3 border-b border-gold/10">
-              <div className="flex gap-1.5">
-                <div className="w-2.5 h-2.5 rounded-full bg-red/60" />
-                <div className="w-2.5 h-2.5 rounded-full bg-amber/60" />
-                <div className="w-2.5 h-2.5 rounded-full bg-green/60" />
-              </div>
-              <span className="font-mono text-[9px] tracking-[0.2em] text-gold/40 ml-2">
-                AI_FACTIONS://SIMULATION_TERMINAL
-              </span>
-            </div>
-
-            {/* Typewriter content */}
-            <div className="space-y-0">
-              <p className="type-line font-mono text-[11px] tracking-[0.2em] text-gold/60 uppercase text-center mb-2">
-                &gt; INITIALIZING... MARCH 2026
-              </p>
-              <h1 className="type-line font-serif text-4xl font-normal text-text text-center leading-[1.25] mb-6">
-                The world is mid-transformation.
-              </h1>
-              <div className="type-line h-px bg-gradient-to-r from-transparent via-gold/20 to-transparent my-5" />
-              <p className="type-line font-serif text-[15px] leading-[1.85] text-body mb-4">
-                &gt; Artificial intelligence has moved from science fiction to the infrastructure of daily life in less than four years. The productivity gains are real. They are flowing almost entirely to the people who own the technology.
-              </p>
-              <p className="type-line font-serif text-[15px] leading-[1.85] text-body mb-4">
-                &gt; Ten factions are fighting to shape what comes next. Tech billionaires, labor unions, European regulators, military officials, artists — each with their own vision for the future.
-              </p>
-              <p className="type-line font-serif text-[15px] leading-[1.85] text-text mb-0 cursor-blink">
-                &gt; Nine events will determine what kind of world exists on January 1, 2028. You will predict each one. The simulation will build the world your predictions produce.
-              </p>
-              <div className="type-line h-px bg-gradient-to-r from-transparent via-gold/20 to-transparent my-5" />
-            </div>
-
-            <div className="text-center animate-[fadeIn_0.5s_5.5s_ease_forwards] opacity-0">
-              <Btn label="▶ INITIALIZE SIMULATION" onClick={() => goTo('choose_group')} />
-            </div>
-          </div>
-        </div>
-      </div>
-    );
+    return <IntroScreen onNext={() => goTo('choose_group')} />;
   }
 
   // ── CHOOSE GROUP ──
@@ -240,10 +198,10 @@ export default function PlayPage() {
                     boxShadow: active ? `0 0 12px ${g.color}22` : 'none',
                   }}
                 >
-                  <div className="flex items-center gap-2 mb-1">
+                  <div className="flex items-center gap-2.5 mb-1.5">
                     <span
-                      className="faction-icon-sm flex items-center justify-center text-sm"
-                      style={{ background: `${g.color}15`, borderColor: `${g.color}33` }}
+                      className="game-icon-sm flex items-center justify-center"
+                      style={{ background: `linear-gradient(180deg, ${g.color}20, ${g.color}08)`, borderColor: `${g.color}44` }}
                     >
                       {icon?.emoji}
                     </span>
@@ -328,10 +286,10 @@ export default function PlayPage() {
             <div className="w-[340px] flex-shrink-0">
               <div className="cyber-frame px-5 py-4 h-full">
                 {/* Title */}
-                <div className="flex items-center gap-2.5 mb-3 pb-3 border-b border-gold/10">
+                <div className="flex items-center gap-3 mb-3 pb-3 border-b border-gold/10">
                   <span
-                    className="faction-icon flex items-center justify-center text-xl"
-                    style={{ background: '#C9A84C12', borderColor: '#C9A84C33' }}
+                    className="game-icon flex items-center justify-center"
+                    style={{ background: 'linear-gradient(180deg, #C9A84C18, #C9A84C06)', borderColor: '#C9A84C33' }}
                   >
                     {evIcon?.emoji || ev.icon}
                   </span>

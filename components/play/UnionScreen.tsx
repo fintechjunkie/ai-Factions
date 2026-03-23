@@ -109,9 +109,9 @@ export default function UnionScreen({ result, onNext }: UnionScreenProps) {
         </div>
 
         {/* Key Insight */}
-        <div className="bg-[#C9A84C12] border border-[#C9A84C33] rounded-lg px-4.5 py-3.5 mb-7">
-          <p className="font-mono text-[10px] tracking-[0.15em] text-gold mb-1.5">KEY INSIGHT</p>
-          <p className="font-serif text-sm text-text leading-[1.7] m-0">{result.keyInsight}</p>
+        <div className="cyber-frame px-8 py-6 mb-7" style={{ borderColor: '#C9A84C33' }}>
+          <p className="font-mono text-[10px] tracking-[0.15em] text-gold mb-3 gold-glow">◈ KEY INSIGHT</p>
+          <p className="font-serif text-lg text-text leading-[1.8] m-0">{result.keyInsight}</p>
         </div>
 
         <div className="text-center">

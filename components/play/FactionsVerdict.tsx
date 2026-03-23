@@ -165,8 +165,8 @@ export default function FactionsVerdict({ result, responses, chosenId, onReplay,
               >
                 {/* Faction icon */}
                 <span
-                  className="faction-icon flex items-center justify-center text-lg flex-shrink-0"
-                  style={{ background: `${oi.color}12`, borderColor: `${oi.color}33` }}
+                  className="game-icon-sm flex items-center justify-center"
+                  style={{ background: `linear-gradient(180deg, ${oi.color}18, ${oi.color}06)`, borderColor: `${oi.color}33` }}
                 >
                   {fi.emoji}
                 </span>
