@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, ReactNode } from 'react';
+import { createPortal } from 'react-dom';
 
 interface DetailModalProps {
   title: string;
@@ -13,6 +14,7 @@ interface DetailModalProps {
 
 export default function DetailModal({ title, subtitle, emoji, color, children, onClose }: DetailModalProps) {
   const [closing, setClosing] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   function handleClose() {
     setClosing(true);
@@ -20,6 +22,7 @@ export default function DetailModal({ title, subtitle, emoji, color, children, o
   }
 
   useEffect(() => {
+    setMounted(true);
     function handleKey(e: KeyboardEvent) {
       if (e.key === 'Escape') handleClose();
     }
@@ -32,9 +35,11 @@ export default function DetailModal({ title, subtitle, emoji, color, children, o
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  return (
+  if (!mounted) return null;
+
+  const modal = (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center py-[3vh]"
+      className="fixed inset-0 z-[9999] flex items-center justify-center"
       style={{
         background: 'rgba(7, 9, 15, 0.88)',
         backdropFilter: 'blur(10px)',
@@ -43,7 +48,7 @@ export default function DetailModal({ title, subtitle, emoji, color, children, o
       onClick={handleClose}
     >
       {/* Close hint top-right */}
-      <div className="absolute top-5 right-6 z-50">
+      <div className="absolute top-5 right-6 z-[10000]">
         <button
           onClick={handleClose}
           className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#111820] border border-border cursor-pointer transition-all duration-200 hover:border-gold/50 hover:bg-gold/5 hover:shadow-[0_0_12px_rgba(201,168,76,0.1)]"
@@ -55,8 +60,9 @@ export default function DetailModal({ title, subtitle, emoji, color, children, o
 
       {/* Modal */}
       <div
-        className="w-full max-w-[680px] max-h-[85vh] mx-6 flex flex-col rounded-xl overflow-hidden"
+        className="w-full max-w-[680px] mx-6 flex flex-col rounded-xl overflow-hidden"
         style={{
+          maxHeight: 'min(85vh, calc(100vh - 60px))',
           border: `1px solid ${color}44`,
           background: `linear-gradient(180deg, ${color}08 0%, #0C1018 5%, #0A0E14 100%)`,
           boxShadow: `0 0 60px rgba(0,0,0,0.6), 0 0 30px ${color}15, inset 0 1px 0 ${color}15`,
@@ -117,4 +123,6 @@ export default function DetailModal({ title, subtitle, emoji, color, children, o
       </div>
     </div>
   );
+
+  return createPortal(modal, document.body);
 }
