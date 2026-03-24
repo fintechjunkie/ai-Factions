@@ -496,7 +496,7 @@ export default function PlayPage() {
 
   // ── PROCESSING ──
   if (phase === 'processing') {
-    return <ProcessingScreen />;
+    return <ProcessingScreen targetYear={targetYear} />;
   }
 
   // ── ERROR ──
