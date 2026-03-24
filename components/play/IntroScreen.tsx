@@ -9,15 +9,42 @@ const LINES = [
   { text: '> 10 FACTIONS DETECTED', type: 'mono', delay: 400 },
   { text: '> 9 TRIGGER EVENTS LOADED', type: 'mono', delay: 400 },
   { text: '> 14 SOCIETAL GROUPS MAPPED', type: 'mono', delay: 400 },
-  { text: '> TIMELINE: MARCH 2026 → JANUARY 2028', type: 'mono', delay: 600 },
+  { text: '> TIMELINE: MARCH 2026 → YOU CHOOSE', type: 'mono', delay: 600 },
   { text: '---', type: 'divider', delay: 400 },
   { text: 'The world is mid-transformation.', type: 'heading', delay: 800 },
   { text: '---', type: 'divider', delay: 300 },
   { text: 'Artificial intelligence has moved from science fiction to the infrastructure of daily life in less than four years. The productivity gains are real. They are flowing almost entirely to the people who own the technology.', type: 'body', delay: 600 },
-  { text: 'Ten factions are fighting to shape what comes next. Tech billionaires, labor unions, European regulators, military officials, artists — each with their own vision for the future.', type: 'body', delay: 600 },
-  { text: 'Nine events will determine what kind of world exists on January 1, 2028. You will predict each one. The simulation will build the world your predictions produce.', type: 'accent', delay: 600 },
+  { text: 'Nine events will determine the future. You will predict each one. The simulation will build the world your predictions produce.', type: 'body', delay: 600 },
+  { text: '---', type: 'divider', delay: 300 },
+  { text: '> THREE POSSIBLE FUTURES:', type: 'mono', delay: 500 },
+  { text: 'scenarios', type: 'scenarios', delay: 800 },
+  { text: 'Your predictions will shift these probabilities. The dominant scenario shapes the world you build.', type: 'accent', delay: 600 },
   { text: '---', type: 'divider', delay: 300 },
   { text: '> AWAITING INPUT...', type: 'mono', delay: 500 },
+];
+
+const SCENARIOS = [
+  {
+    icon: '🚀',
+    name: 'THE GOLD RUSH',
+    prob: 35,
+    color: '#FBBF24',
+    desc: 'AI deploys fast. No guardrails. Capital wins.',
+  },
+  {
+    icon: '🔥',
+    name: 'THE BACKLASH',
+    prob: 25,
+    color: '#F43F5E',
+    desc: 'Job losses trigger revolt. Workers get protection.',
+  },
+  {
+    icon: '⚖️',
+    name: 'THE STALEMATE',
+    prob: 40,
+    color: '#14B8A6',
+    desc: 'Washington gridlocks. EU regulates. Patchwork rules.',
+  },
 ];
 
 interface IntroScreenProps {
@@ -26,7 +53,6 @@ interface IntroScreenProps {
 
 export default function IntroScreen({ onNext }: IntroScreenProps) {
   const [visibleLines, setVisibleLines] = useState(0);
-  const [typingIdx, setTypingIdx] = useState(0);
   const [typedChars, setTypedChars] = useState(0);
   const [showButton, setShowButton] = useState(false);
 
@@ -40,7 +66,7 @@ export default function IntroScreen({ onNext }: IntroScreenProps) {
 
     // For mono lines, type character by character
     if (line.type === 'mono' && typedChars < line.text.length) {
-      const speed = Math.random() * 20 + 15; // 15-35ms per char
+      const speed = Math.random() * 20 + 15;
       const timer = setTimeout(() => setTypedChars((c) => c + 1), speed);
       return () => clearTimeout(timer);
     }
@@ -54,7 +80,6 @@ export default function IntroScreen({ onNext }: IntroScreenProps) {
     return () => clearTimeout(timer);
   }, [visibleLines, typedChars]);
 
-  // Skip animation on click
   function skipToEnd() {
     setVisibleLines(LINES.length);
     setShowButton(true);
@@ -62,7 +87,7 @@ export default function IntroScreen({ onNext }: IntroScreenProps) {
 
   return (
     <div
-      className="min-h-screen bg-bg grid-bg flex flex-col items-center justify-center px-5 py-12"
+      className="min-h-screen bg-vibrant grid-bg flex flex-col items-center justify-center px-5 py-12"
       onClick={visibleLines < LINES.length ? skipToEnd : undefined}
     >
       <div className="w-full max-w-[700px]">
@@ -80,7 +105,7 @@ export default function IntroScreen({ onNext }: IntroScreenProps) {
           </div>
 
           {/* Typewriter content */}
-          <div className="min-h-[380px] space-y-3">
+          <div className="min-h-[420px] space-y-3">
             {LINES.slice(0, visibleLines + 1).map((line, i) => {
               const isTyping = i === visibleLines && line.type === 'mono' && typedChars < line.text.length;
               const displayText = isTyping ? line.text.slice(0, typedChars) : line.text;
@@ -91,8 +116,7 @@ export default function IntroScreen({ onNext }: IntroScreenProps) {
                 return (
                   <div
                     key={i}
-                    className="h-px my-4"
-                    style={{ background: 'linear-gradient(90deg, transparent, #C9A84C33, transparent)' }}
+                    className="divider-animated my-4"
                   />
                 );
               }
@@ -101,7 +125,7 @@ export default function IntroScreen({ onNext }: IntroScreenProps) {
                 return (
                   <h1
                     key={i}
-                    className="font-serif text-4xl font-normal text-text text-center leading-[1.3] py-4 gold-glow"
+                    className="font-serif text-4xl font-normal text-center leading-[1.3] py-4 text-shimmer"
                   >
                     {displayText}
                   </h1>
@@ -117,11 +141,39 @@ export default function IntroScreen({ onNext }: IntroScreenProps) {
                 );
               }
 
+              if (line.type === 'scenarios') {
+                return (
+                  <div key={i} className="flex gap-2 my-3 animate-[fadeIn_0.5s_ease_forwards]">
+                    {SCENARIOS.map((s) => (
+                      <div
+                        key={s.name}
+                        className="flex-1 rounded-xl px-3 py-3 text-center"
+                        style={{
+                          background: `${s.color}0A`,
+                          border: `1px solid ${s.color}30`,
+                        }}
+                      >
+                        <div className="text-lg mb-1">{s.icon}</div>
+                        <div className="font-mono font-bold text-lg mb-0.5" style={{ color: s.color }}>
+                          {s.prob}%
+                        </div>
+                        <div className="font-mono text-[8px] tracking-[0.1em] font-bold mb-1.5" style={{ color: s.color }}>
+                          {s.name}
+                        </div>
+                        <p className="font-serif text-[10px] text-muted leading-[1.4] m-0">
+                          {s.desc}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                );
+              }
+
               if (line.type === 'accent') {
                 return (
                   <p
                     key={i}
-                    className="font-serif text-[15px] leading-[1.85] text-text animate-[fadeIn_0.5s_ease_forwards]"
+                    className="font-serif text-[14px] leading-[1.85] text-text animate-[fadeIn_0.5s_ease_forwards] text-center"
                   >
                     {displayText}
                   </p>
