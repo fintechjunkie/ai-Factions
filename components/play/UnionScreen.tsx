@@ -32,13 +32,14 @@ interface UnionScreenProps {
 export default function UnionScreen({ result, onNext }: UnionScreenProps) {
   const dom = result.dominantScenario;
   const meta = SCENARIO_META[dom];
+  const year = result.targetYear || 2028;
 
   return (
     <div className="min-h-screen bg-bg flex flex-col items-center justify-start px-5 py-10">
       <div className="w-full max-w-[680px] animate-[fadeIn_0.4s_ease_forwards]">
         {/* Eyebrow */}
         <p className="font-mono text-[11px] tracking-[0.2em] text-muted uppercase text-center mb-3.5">
-          JANUARY 1, 2028
+          JANUARY 1, {year}
         </p>
 
         {/* Title + badge */}

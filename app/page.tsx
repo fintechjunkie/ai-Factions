@@ -1,9 +1,34 @@
+'use client';
+
 import Link from 'next/link';
+import { useState, useEffect } from 'react';
+
+const STREAM_POSITIONS = [8, 22, 37, 55, 68, 82, 94]; // % from left
 
 export default function LandingPage() {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   return (
-    <div className="min-h-screen bg-bg grid-bg flex flex-col items-center justify-center px-5 py-12">
-      <div className="max-w-[760px] w-full">
+    <div className="min-h-screen bg-bg grid-bg flex flex-col items-center justify-center px-5 py-12 relative overflow-hidden">
+      {/* Ambient data streams */}
+      {mounted && STREAM_POSITIONS.map((left, i) => (
+        <div
+          key={i}
+          className="data-stream"
+          style={{
+            left: `${left}%`,
+            animationDelay: `${i * 1.1}s`,
+            animationDuration: `${6 + i * 0.8}s`,
+            height: `${40 + i * 10}px`,
+          }}
+        />
+      ))}
+
+      <div className="max-w-[760px] w-full relative z-10">
         <div className="cyber-frame scanlines px-10 py-10">
           {/* Terminal chrome */}
           <div className="flex items-center gap-3 mb-8 pb-4 border-b border-gold/10">
@@ -15,6 +40,9 @@ export default function LandingPage() {
             <span className="font-mono text-[10px] tracking-[0.15em] text-gold/30">
               AI_FACTIONS://SCENARIO_ANALYSIS
             </span>
+            <span className="ml-auto font-mono text-[9px] text-gold/20 animate-pulse">
+              ● LIVE
+            </span>
           </div>
 
           {/* Eyebrow */}
@@ -22,8 +50,8 @@ export default function LandingPage() {
             MARCH 2026
           </p>
 
-          {/* Headline */}
-          <h1 className="font-serif text-[42px] font-normal text-text text-center leading-[1.25] mb-8 gold-glow">
+          {/* Headline with shimmer */}
+          <h1 className="font-serif text-[42px] font-normal text-center leading-[1.25] mb-8 text-shimmer">
             The world is mid-transformation.
           </h1>
 
@@ -53,7 +81,7 @@ export default function LandingPage() {
             Two modes. One world. <strong className="text-gold/80">Explore</strong> the factions, events,
             and forces shaping this moment. Or <strong className="text-gold/80">Play</strong> the
             simulation — predict nine key events and see the world your choices
-            produce on January 1, 2028.
+            produce.
           </p>
 
           {/* Divider */}
@@ -63,8 +91,11 @@ export default function LandingPage() {
           <div className="grid grid-cols-2 gap-4">
             {/* World Card */}
             <Link href="/world/factions" className="block group">
-              <div className="bg-[#0a0e14] border border-teal/30 rounded-xl p-6 transition-all duration-200 group-hover:border-teal group-hover:shadow-[0_0_20px_rgba(20,184,166,0.1)] cursor-pointer h-full flex flex-col">
-                <div className="game-icon mb-4" style={{ background: 'linear-gradient(180deg, #14B8A618, #14B8A606)', borderColor: '#14B8A644' }}>
+              <div className="bg-[#0a0e14] border border-teal/30 rounded-xl p-6 transition-all duration-300 group-hover:border-teal group-hover:shadow-[0_0_24px_rgba(20,184,166,0.12)] cursor-pointer h-full flex flex-col">
+                <div
+                  className="game-icon mb-4"
+                  style={{ background: 'linear-gradient(180deg, #14B8A618, #14B8A606)', borderColor: '#14B8A644' }}
+                >
                   🌐
                 </div>
                 <p className="font-mono text-[11px] tracking-[0.15em] text-teal uppercase mb-2">
@@ -74,7 +105,7 @@ export default function LandingPage() {
                   Deep dive into the factions, events, and forces shaping
                   AI&apos;s impact on society.
                 </p>
-                <span className="inline-block bg-teal text-black font-mono font-bold text-xs tracking-[0.12em] px-5 py-2.5 rounded-md transition-colors hover:brightness-110 self-start">
+                <span className="inline-block bg-teal text-black font-mono font-bold text-xs tracking-[0.12em] px-5 py-2.5 rounded-md transition-all duration-300 group-hover:shadow-[0_0_12px_rgba(20,184,166,0.3)] self-start">
                   ENTER THE WORLD →
                 </span>
               </div>
@@ -82,18 +113,21 @@ export default function LandingPage() {
 
             {/* Play Card */}
             <Link href="/play" className="block group">
-              <div className="bg-[#0a0e14] border border-gold/30 rounded-xl p-6 transition-all duration-200 group-hover:border-gold group-hover:shadow-[0_0_20px_rgba(201,168,76,0.1)] cursor-pointer h-full flex flex-col">
-                <div className="game-icon mb-4" style={{ background: 'linear-gradient(180deg, #C9A84C18, #C9A84C06)', borderColor: '#C9A84C44' }}>
+              <div className="bg-[#0a0e14] border border-gold/30 rounded-xl p-6 transition-all duration-300 group-hover:border-gold group-hover:shadow-[0_0_24px_rgba(201,168,76,0.12)] cursor-pointer h-full flex flex-col">
+                <div
+                  className="game-icon mb-4 btn-pulse"
+                  style={{ background: 'linear-gradient(180deg, #C9A84C18, #C9A84C06)', borderColor: '#C9A84C44' }}
+                >
                   ▶
                 </div>
                 <p className="font-mono text-[11px] tracking-[0.15em] text-gold uppercase mb-2">
                   PLAY THE SIMULATION
                 </p>
                 <p className="font-serif text-sm leading-[1.7] text-body flex-1 mb-5">
-                  Predict 9 key events. See the world your choices produce on
-                  January 1, 2028.
+                  Predict 9 key events. Choose a time horizon. See the world
+                  your choices produce.
                 </p>
-                <span className="inline-block bg-gold text-black font-mono font-bold text-xs tracking-[0.12em] px-5 py-2.5 rounded-md transition-colors hover:brightness-110 self-start">
+                <span className="inline-block bg-gold text-black font-mono font-bold text-xs tracking-[0.12em] px-5 py-2.5 rounded-md transition-all duration-300 group-hover:shadow-[0_0_12px_rgba(201,168,76,0.3)] self-start">
                   START THE SIMULATION →
                 </span>
               </div>

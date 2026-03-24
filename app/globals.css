@@ -46,6 +46,31 @@ body {
   50% { transform: translateY(-3px); }
 }
 
+@keyframes pulseGlow {
+  0%, 100% { box-shadow: 0 0 8px rgba(201, 168, 76, 0.15), 0 0 20px rgba(201, 168, 76, 0.05); }
+  50% { box-shadow: 0 0 16px rgba(201, 168, 76, 0.3), 0 0 40px rgba(201, 168, 76, 0.1); }
+}
+
+@keyframes textShimmer {
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+@keyframes overlayIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes modalSlideIn {
+  from { opacity: 0; transform: scale(0.95) translateY(20px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+@keyframes dataStream {
+  0% { transform: translateY(-100%); }
+  100% { transform: translateY(100vh); }
+}
+
 ::-webkit-scrollbar { width: 4px; }
 ::-webkit-scrollbar-thumb { background: #1A2535; border-radius: 2px; }
 textarea { outline: none; }
@@ -216,4 +241,52 @@ textarea::placeholder { color: #4A5570; }
   color: #C9A84C;
   margin-left: 3px;
   font-size: 0.9em;
+}
+
+/* ═══ PULSE BUTTON ═══ */
+.btn-pulse {
+  animation: pulseGlow 2.5s ease-in-out infinite;
+}
+
+/* ═══ TEXT SHIMMER ═══ */
+.text-shimmer {
+  background: linear-gradient(90deg, #C9A84C 0%, #E8D5A0 40%, #C9A84C 60%, #E8D5A0 100%);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: textShimmer 4s linear infinite;
+}
+
+/* ═══ MODAL OVERLAY ═══ */
+.modal-overlay {
+  animation: overlayIn 0.2s ease forwards;
+}
+.modal-content {
+  animation: modalSlideIn 0.3s ease forwards;
+}
+
+/* ═══ DATA STREAMS (landing decoration) ═══ */
+.data-stream {
+  position: absolute;
+  width: 1px;
+  height: 60px;
+  background: linear-gradient(180deg, transparent, #C9A84C15, transparent);
+  animation: dataStream 8s linear infinite;
+  opacity: 0.3;
+}
+
+/* ═══ YEAR SELECTOR ═══ */
+.year-btn {
+  transition: all 0.15s ease;
+  cursor: pointer;
+}
+.year-btn:hover {
+  background: #C9A84C15;
+  border-color: #C9A84C55;
+}
+.year-btn.active {
+  background: #C9A84C18;
+  border-color: #C9A84C;
+  box-shadow: 0 0 12px rgba(201, 168, 76, 0.2);
 }

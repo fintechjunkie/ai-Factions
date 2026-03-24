@@ -23,6 +23,7 @@ import IntroScreen from '@/components/play/IntroScreen';
 type Phase =
   | 'intro'
   | 'choose_group'
+  | 'choose_year'
   | 'events'
   | 'processing'
   | 'error'
@@ -31,11 +32,14 @@ type Phase =
   | 'reveal_all'
   | 'reveal_factions';
 
+const YEAR_OPTIONS = [2028, 2030, 2033, 2036, 2040];
+
 export default function PlayPage() {
   const { setGameContext } = useApp();
   const [phase, setPhase] = useState<Phase>('intro');
   const [history, setHistory] = useState<Phase[]>([]);
   const [chosenId, setChosenId] = useState<string | null>(null);
+  const [targetYear, setTargetYear] = useState<number>(2028);
   const [responses, setResponses] = useState<(PlayerResponse | null)[]>(
     Array(EVENTS.length).fill(null)
   );
@@ -118,6 +122,7 @@ export default function PlayPage() {
           groupId: chosenId,
           groupName: grp.name,
           groupDesc: grp.desc,
+          targetYear,
           responses: responsesToSend,
         }),
       });
@@ -137,6 +142,7 @@ export default function PlayPage() {
       const scenarioNames: Record<string, string> = { gold: 'Gold Rush', backlash: 'Backlash', stalemate: 'Stalemate' };
       setGameContext(
         `Dominant scenario: ${scenarioNames[data.dominantScenario] || data.dominantScenario}. ` +
+        `Target year: January 1, ${targetYear}. ` +
         `Probabilities: Gold ${data.probabilities?.gold}%, Backlash ${data.probabilities?.backlash}%, Stalemate ${data.probabilities?.stalemate}%. ` +
         `Key insight: ${data.keyInsight}. ` +
         `Player chose group: ${grp.name}.`
@@ -151,6 +157,7 @@ export default function PlayPage() {
     setPhase('intro');
     setHistory([]);
     setChosenId(null);
+    setTargetYear(2028);
     setResponses(Array(EVENTS.length).fill(null));
     setEvIdx(0);
     setResult(null);
@@ -245,9 +252,105 @@ export default function PlayPage() {
           <div className="text-center">
             <Btn
               label={chosenId ? 'CONTINUE →' : 'SELECT YOUR GROUP TO CONTINUE'}
-              onClick={() => { if (chosenId) goTo('events'); }}
+              onClick={() => { if (chosenId) goTo('choose_year'); }}
               disabled={!chosenId}
             />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ── CHOOSE YEAR ──
+  if (phase === 'choose_year') {
+    const yearDescriptions: Record<number, string> = {
+      2028: 'Near-term. The immediate ripple effects of your predictions. Early winners and losers become clear.',
+      2030: 'Mid-range. Policies take hold, markets adjust, and second-order effects emerge. Some groups adapt; others don\'t.',
+      2033: 'One cycle out. A full economic cycle lets compounding effects play out. Structural changes become visible.',
+      2036: 'Long-range. A decade of AI reshapes institutions, education, and the labor market from the ground up.',
+      2040: 'Deep future. The full arc of transformation. Some groups have rebuilt entirely; others have been left behind.',
+    };
+
+    return (
+      <div className="min-h-screen bg-bg grid-bg flex flex-col items-center justify-center px-5 py-12">
+        <div className="w-full max-w-[640px] animate-[fadeIn_0.4s_ease_forwards]">
+          <div className="cyber-frame scanlines px-8 py-8">
+            {/* Terminal header */}
+            <div className="flex items-center gap-3 mb-6 pb-4 border-b border-gold/10">
+              <div className="flex gap-1.5">
+                <div className="w-2.5 h-2.5 rounded-full bg-[#FF5F56]" />
+                <div className="w-2.5 h-2.5 rounded-full bg-[#FFBD2E]" />
+                <div className="w-2.5 h-2.5 rounded-full bg-[#27C93F]" />
+              </div>
+              <span className="font-mono text-[9px] tracking-[0.15em] text-gold/30">
+                TEMPORAL_CALIBRATION
+              </span>
+            </div>
+
+            <p className="font-mono text-[11px] tracking-[0.2em] text-muted uppercase mb-3 text-center">
+              SET YOUR TIME HORIZON
+            </p>
+            <h2 className="font-serif text-[28px] font-normal text-text mb-3 text-center gold-glow">
+              How far into the future?
+            </h2>
+            <p className="font-serif text-sm text-body text-center mb-8 max-w-[440px] mx-auto">
+              Your 9 predictions start from March 2026. Choose when to measure the consequences.
+              Longer horizons amplify both gains and losses.
+            </p>
+
+            {/* Year options */}
+            <div className="space-y-2 mb-8">
+              {YEAR_OPTIONS.map((year) => {
+                const active = targetYear === year;
+                const yearsOut = year - 2026;
+                return (
+                  <button
+                    key={year}
+                    onClick={() => setTargetYear(year)}
+                    className={`w-full text-left rounded-xl px-5 py-4 border transition-all duration-200 cursor-pointer ${active ? 'active' : ''}`}
+                    style={{
+                      background: active ? '#C9A84C12' : '#0a0e14',
+                      borderColor: active ? '#C9A84C' : '#1A2535',
+                      boxShadow: active ? '0 0 16px rgba(201, 168, 76, 0.15)' : 'none',
+                    }}
+                  >
+                    <div className="flex items-center gap-4">
+                      <span
+                        className="font-mono text-2xl font-bold min-w-[60px]"
+                        style={{ color: active ? '#C9A84C' : '#4A5570' }}
+                      >
+                        {year}
+                      </span>
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-0.5">
+                          <span className="font-mono text-[10px] text-muted tracking-[0.1em]">
+                            {yearsOut} {yearsOut === 1 ? 'YEAR' : 'YEARS'} OUT
+                          </span>
+                          {year === 2028 && (
+                            <span className="font-mono text-[8px] text-gold/50 bg-gold/10 rounded px-1.5 py-0.5">
+                              DEFAULT
+                            </span>
+                          )}
+                          {year >= 2036 && (
+                            <span className="font-mono text-[8px] text-red/50 bg-red/10 rounded px-1.5 py-0.5">
+                              HIGH VARIANCE
+                            </span>
+                          )}
+                        </div>
+                        <p className="font-serif text-xs text-body leading-[1.5] m-0">
+                          {yearDescriptions[year]}
+                        </p>
+                      </div>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+
+            <div className="flex justify-between items-center">
+              <BackButton onClick={goBack} />
+              <Btn label="BEGIN EVENTS →" onClick={() => goTo('events')} />
+            </div>
           </div>
         </div>
       </div>

@@ -1,7 +1,19 @@
 export const SIMULATE_PROMPT = [
   'You are the simulation engine for AI Factions: The Simulation.',
   'A player made structured predictions (choice + elaboration) for 9 key events.',
-  'Generate the world that exists on January 1, 2028 based on their worldview.',
+  'They also chose a TARGET YEAR — the date to project the world to.',
+  'Generate the world that exists on January 1 of that target year based on their worldview.',
+  '',
+  'TIME HORIZON RULES:',
+  'The further the target year from 2026, the more dramatic the changes:',
+  '- 2028 (2 years): Immediate first-order effects. Score shifts ±5-25 from baseline.',
+  '- 2030 (4 years): Second-order effects. Compounding begins. Score shifts ±10-35.',
+  '- 2033 (7 years): Structural changes. New industries, retrained workers, institutional shifts. Score shifts ±15-45.',
+  '- 2036 (10 years): Full transformation cycle. Education pipeline changed. Score shifts ±20-55.',
+  '- 2040 (14 years): Deep future. Multiple cascading effects. Complete restructuring possible. Score shifts ±25-65.',
+  'Longer time horizons should produce MORE differentiation between groups, not less.',
+  'Groups that adapt (through retraining, unionization, entrepreneurship) should show recovery over longer horizons.',
+  'Groups that don\'t adapt should show accelerating decline.',
   '',
   'SCORING: Return final scores on a 1-100 scale (100=thriving, 50=average, 1=dire).',
   'Scores represent overall economic security, employment stability, and income for each group.',
@@ -18,7 +30,7 @@ export const SIMULATE_PROMPT = [
   'Stalemate (default 40%): Federal vacuum, EU enforcement, legal patchwork, no clean winner.',
   '',
   'SCORE SHIFT GUIDANCE — move scores based on player\'s choices:',
-  'Catastrophic job displacement: service_worker, middle_manager, young_worker, gig_worker -15 to -25',
+  'Catastrophic job displacement: service_worker, middle_manager, young_worker, gig_worker -15 to -25 (x time multiplier)',
   'Minimal job displacement: labor groups drift down only 3-7 pts',
   'AGI demonstrated/transformative: amplify all shifts x1.5; entrepreneur, investor, billionaire surge +10-20',
   'AGI claimed only: modest additional shifts, uncertainty premium',
@@ -39,15 +51,17 @@ export const SIMULATE_PROMPT = [
   '',
   'CRITICAL: Make scores move MEANINGFULLY. A catastrophic displacement world should look',
   'drastically different from a minimal one. Players should feel their choices mattered.',
+  'Longer time horizons should produce MORE dramatic outcomes, not flatter ones.',
   '',
-  'State of Union: present tense, January 1 2028, specific to their predictions.',
-  'Chosen group narrative: personal, concrete, what life actually looks like for them.',
+  'State of Union: present tense, January 1 of target year, specific to their predictions.',
+  'Chosen group narrative: personal, concrete, what life actually looks like for them at that date.',
   '',
   'Return ONLY valid JSON, no markdown fences:',
   '{"dominantScenario":"gold|backlash|stalemate","probabilities":{"gold":35,"backlash":25,"stalemate":40},',
+  '"targetYear":2028,',
   '"stateOfUnion":["para1","para2","para3","para4"],',
   '"keyInsight":"One striking specific sentence about this world vs the default.",',
-  '"chosenGroupNarrative":"2-3 sentences. Personal and concrete for this group on Jan 1 2028.",',
+  '"chosenGroupNarrative":"2-3 sentences. Personal and concrete for this group on Jan 1 of target year.",',
   '"groups":[',
   '{"id":"billionaire","score":96,"headline":"5-7 word outcome","note":"One sentence mechanism"},',
   '{"id":"investor","score":77,"headline":"","note":""},',
@@ -81,15 +95,20 @@ export const SIMULATE_PROMPT = [
 export function buildUserMessage(
   groupName: string,
   groupDesc: string,
-  responses: { eventTitle: string; choiceLabel: string; choiceDesc: string; text: string }[]
+  responses: { eventTitle: string; choiceLabel: string; choiceDesc: string; text: string }[],
+  targetYear: number = 2028
 ): string {
-  const lines = [`Player group: ${groupName} — ${groupDesc}`, ''];
+  const lines = [
+    `Player group: ${groupName} — ${groupDesc}`,
+    `Target year: January 1, ${targetYear} (${targetYear - 2026} years from baseline)`,
+    '',
+  ];
   responses.forEach((r, i) => {
     lines.push(`EVENT ${i + 1} ${r.eventTitle.toUpperCase()}:`);
     lines.push(`Choice: ${r.choiceLabel} (${r.choiceDesc})`);
     if (r.text) lines.push(`Player elaboration: ${r.text}`);
     lines.push('');
   });
-  lines.push('Return only the JSON object.');
+  lines.push(`Project the world to January 1, ${targetYear}. Return only the JSON object.`);
   return lines.join('\n');
 }

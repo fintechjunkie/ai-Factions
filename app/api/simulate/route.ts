@@ -5,7 +5,8 @@ import { EVENTS } from '@/lib/data/events';
 
 export async function POST(req: NextRequest) {
   try {
-    const { groupId, groupName, groupDesc, responses } = await req.json();
+    const { groupId, groupName, groupDesc, targetYear, responses } = await req.json();
+    const year = targetYear || 2028;
 
     if (!groupId || !groupName || !responses || !Array.isArray(responses)) {
       return NextResponse.json(
@@ -35,7 +36,7 @@ export async function POST(req: NextRequest) {
       }
     );
 
-    const userMessage = buildUserMessage(groupName, groupDesc, formattedResponses);
+    const userMessage = buildUserMessage(groupName, groupDesc, formattedResponses, year);
 
     const client = new Anthropic();
 

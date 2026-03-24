@@ -133,6 +133,7 @@ export interface FactionOutcome {
 export interface SimulationResult {
   dominantScenario: 'gold' | 'backlash' | 'stalemate';
   probabilities: { gold: number; backlash: number; stalemate: number };
+  targetYear?: number;
   stateOfUnion: string[];
   keyInsight: string;
   chosenGroupNarrative: string;

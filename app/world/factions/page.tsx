@@ -4,17 +4,14 @@ import { useState } from 'react';
 import { FACTIONS } from '@/lib/data/factions';
 import { MatrixPairing } from '@/lib/types';
 import FactionCard from '@/components/world/FactionCard';
-import FactionDetail from '@/components/world/FactionDetail';
+import FactionModal from '@/components/world/FactionModal';
 import PowerMatrix from '@/components/world/PowerMatrix';
 
 export default function FactionsPage() {
-  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
   const [selectedPairing, setSelectedPairing] = useState<MatrixPairing | null>(null);
 
-  function toggle(id: string) {
-    setExpandedId((cur) => (cur === id ? null : id));
-    setSelectedPairing(null);
-  }
+  const selectedFaction = FACTIONS.find((f) => f.id === selectedId) || null;
 
   return (
     <div className="animate-[fadeIn_0.4s_ease_forwards]">
@@ -27,25 +24,15 @@ export default function FactionsPage() {
         {/* Left: Faction grid */}
         <div className="flex-[2] min-w-0">
           <div className="grid grid-cols-2 gap-2">
-            {FACTIONS.map((f) => {
-              const isExpanded = expandedId === f.id;
-              return (
-                <div key={f.id} className={isExpanded ? 'col-span-2' : ''}>
-                  <FactionCard faction={f} isExpanded={isExpanded} onClick={() => toggle(f.id)} />
-                  {isExpanded && (
-                    <div
-                      className="mt-2 rounded-xl px-5 py-4"
-                      style={{
-                        background: `${f.color}08`,
-                        border: `1px solid ${f.color}33`,
-                      }}
-                    >
-                      <FactionDetail faction={f} />
-                    </div>
-                  )}
-                </div>
-              );
-            })}
+            {FACTIONS.map((f) => (
+              <div key={f.id}>
+                <FactionCard
+                  faction={f}
+                  isExpanded={selectedId === f.id}
+                  onClick={() => setSelectedId(f.id)}
+                />
+              </div>
+            ))}
           </div>
         </div>
 
@@ -101,6 +88,14 @@ export default function FactionsPage() {
           </div>
         </div>
       </div>
+
+      {/* Modal overlay */}
+      {selectedFaction && (
+        <FactionModal
+          faction={selectedFaction}
+          onClose={() => setSelectedId(null)}
+        />
+      )}
     </div>
   );
 }
