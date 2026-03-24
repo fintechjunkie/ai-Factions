@@ -39,7 +39,7 @@ export default function DetailModal({ title, subtitle, emoji, color, children, o
 
   const modal = (
     <div
-      className="fixed inset-0 z-[9999] flex items-center justify-center"
+      className="fixed inset-0 z-[9999] flex justify-center overflow-y-auto"
       style={{
         background: 'rgba(7, 9, 15, 0.88)',
         backdropFilter: 'blur(10px)',
@@ -60,9 +60,9 @@ export default function DetailModal({ title, subtitle, emoji, color, children, o
 
       {/* Modal */}
       <div
-        className="w-full max-w-[680px] mx-6 flex flex-col rounded-xl overflow-hidden"
+        className="w-full max-w-[680px] mx-6 mt-[30px] mb-[30px] flex flex-col rounded-xl overflow-hidden self-start"
         style={{
-          maxHeight: 'min(85vh, calc(100vh - 60px))',
+          maxHeight: 'calc(100vh - 60px)',
           border: `1px solid ${color}44`,
           background: `linear-gradient(180deg, ${color}08 0%, #0C1018 5%, #0A0E14 100%)`,
           boxShadow: `0 0 60px rgba(0,0,0,0.6), 0 0 30px ${color}15, inset 0 1px 0 ${color}15`,
