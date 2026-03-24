@@ -220,36 +220,130 @@ textarea::placeholder { color: #4A5570; }
   animation: orbFloat1 20s ease-in-out infinite reverse;
 }
 
-/* ═══ ICON CONTAINERS ═══ */
+/* ═══ 3D GAME ICON SYSTEM ═══ */
+/* Inspired by mobile game icon style: dark recessed bg, thick metallic border,
+   inner glow, large emoji with drop shadow */
+
 .game-icon {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border-radius: 10px;
-  font-size: 28px;
-  width: 52px;
-  height: 52px;
-  border: 1px solid;
   position: relative;
   flex-shrink: 0;
-  background: linear-gradient(180deg, rgba(255,255,255,0.06) 0%, transparent 100%);
-  box-shadow:
-    0 4px 12px rgba(0,0,0,0.4),
-    0 1px 2px rgba(0,0,0,0.3),
-    inset 0 1px 0 rgba(255,255,255,0.08);
-  text-shadow: 0 2px 8px rgba(0,0,0,0.5);
-}
-.game-icon-sm {
-  width: 36px;
-  height: 36px;
-  font-size: 18px;
-  border-radius: 8px;
-}
-.game-icon-lg {
+  /* Size */
   width: 64px;
   height: 64px;
-  font-size: 34px;
+  font-size: 32px;
+  /* Shape */
+  border-radius: 16px;
+  /* Thick metallic gold border */
+  border: 2.5px solid #B8943F;
+  /* Dark recessed background with subtle radial glow */
+  background:
+    radial-gradient(circle at 50% 35%, rgba(201, 168, 76, 0.12) 0%, transparent 65%),
+    linear-gradient(180deg, #1a1812 0%, #0e0c08 50%, #080604 100%);
+  /* 3D depth: outer shadow + inner highlight + ambient glow */
+  box-shadow:
+    0 6px 20px rgba(0, 0, 0, 0.6),
+    0 2px 4px rgba(0, 0, 0, 0.4),
+    inset 0 2px 4px rgba(201, 168, 76, 0.15),
+    inset 0 -2px 6px rgba(0, 0, 0, 0.5),
+    0 0 20px rgba(201, 168, 76, 0.06);
+  /* Emoji styling */
+  text-shadow: 0 3px 10px rgba(0, 0, 0, 0.7);
+  /* Subtle shine overlay via ::before */
+  overflow: hidden;
+}
+.game-icon::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 45%;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.08), transparent);
+  border-radius: 14px 14px 0 0;
+  pointer-events: none;
+}
+.game-icon::after {
+  content: '';
+  position: absolute;
+  top: 3px; left: 3px; right: 3px; bottom: 3px;
+  border-radius: 13px;
+  border: 1px solid rgba(201, 168, 76, 0.12);
+  pointer-events: none;
+}
+
+/* Small variant — for inline use in lists */
+.game-icon-sm {
+  width: 44px;
+  height: 44px;
+  font-size: 22px;
   border-radius: 12px;
+  border-width: 2px;
+}
+.game-icon-sm::before {
+  border-radius: 10px 10px 0 0;
+}
+.game-icon-sm::after {
+  top: 2px; left: 2px; right: 2px; bottom: 2px;
+  border-radius: 9px;
+}
+
+/* Large variant — for hero/feature display */
+.game-icon-lg {
+  width: 80px;
+  height: 80px;
+  font-size: 40px;
+  border-radius: 20px;
+  border-width: 3px;
+}
+.game-icon-lg::before {
+  border-radius: 17px 17px 0 0;
+}
+.game-icon-lg::after {
+  top: 4px; left: 4px; right: 4px; bottom: 4px;
+  border-radius: 16px;
+}
+
+/* XL variant — for landing page feature icons */
+.game-icon-xl {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  flex-shrink: 0;
+  width: 96px;
+  height: 96px;
+  font-size: 48px;
+  border-radius: 24px;
+  border: 3.5px solid #B8943F;
+  background:
+    radial-gradient(circle at 50% 35%, rgba(201, 168, 76, 0.12) 0%, transparent 65%),
+    linear-gradient(180deg, #1a1812 0%, #0e0c08 50%, #080604 100%);
+  box-shadow:
+    0 8px 28px rgba(0, 0, 0, 0.7),
+    0 3px 6px rgba(0, 0, 0, 0.5),
+    inset 0 3px 6px rgba(201, 168, 76, 0.15),
+    inset 0 -3px 8px rgba(0, 0, 0, 0.5),
+    0 0 30px rgba(201, 168, 76, 0.08);
+  text-shadow: 0 4px 14px rgba(0, 0, 0, 0.8);
+  overflow: hidden;
+}
+.game-icon-xl::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 45%;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.08), transparent);
+  border-radius: 21px 21px 0 0;
+  pointer-events: none;
+}
+.game-icon-xl::after {
+  content: '';
+  position: absolute;
+  top: 4px; left: 4px; right: 4px; bottom: 4px;
+  border-radius: 20px;
+  border: 1px solid rgba(201, 168, 76, 0.1);
+  pointer-events: none;
 }
 
 /* ═══ TERMINAL ═══ */

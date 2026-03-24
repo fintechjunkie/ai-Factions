@@ -130,18 +130,9 @@ export default function LandingPage() {
             produce.
           </p>
 
-          {/* Oracle callout */}
-          <div className="rounded-xl px-5 py-4 mb-0" style={{ background: '#C9A84C0A', border: '1px solid #C9A84C20' }}>
-            <div className="flex items-center gap-3">
-              <span className="text-2xl">🔮</span>
-              <div>
-                <p className="font-mono text-[10px] tracking-[0.12em] text-gold/60 mb-0.5">THE ORACLE</p>
-                <p className="font-serif text-sm text-text/75 leading-[1.6] m-0">
-                  A strategic AI analyst that knows every faction, alliance, and scenario. Available at any time via the <span className="font-mono text-gold text-[11px]">◎ ASK ORACLE</span> button in the top nav.
-                </p>
-              </div>
-            </div>
-          </div>
+          <p className="font-serif text-base leading-[1.85] text-body mb-0">
+            And there is the <strong className="text-gold">Oracle</strong> — a powerful AI strategist that has deeply analyzed every faction, every alliance, and every scenario. Ask it what life is like for nurses in the Backlash. Ask it why tech billionaires keep winning. Ask it anything. Look for the <span className="font-mono text-gold text-[11px]">◎ ASK ORACLE</span> button.
+          </p>
 
           {/* Animated divider */}
           <div className="divider-animated my-8" />
@@ -154,10 +145,7 @@ export default function LandingPage() {
                 {/* Subtle gradient overlay on hover */}
                 <div className="absolute inset-0 bg-gradient-to-br from-teal/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-xl" />
                 <div className="relative z-10">
-                  <div
-                    className="game-icon mb-4 transition-all duration-300 group-hover:shadow-[0_0_16px_rgba(20,184,166,0.25)]"
-                    style={{ background: 'linear-gradient(180deg, #14B8A618, #14B8A606)', borderColor: '#14B8A644' }}
-                  >
+                  <div className="game-icon-lg mb-4 transition-all duration-300 group-hover:shadow-[0_0_24px_rgba(20,184,166,0.2)]" style={{ borderColor: '#14B8A6' }}>
                     🌐
                   </div>
                   <p className="font-mono text-[11px] tracking-[0.15em] text-teal uppercase mb-2">
@@ -179,10 +167,7 @@ export default function LandingPage() {
               <div className="relative bg-[#0a0e14] border border-gold/30 rounded-xl p-6 transition-all duration-300 group-hover:border-gold group-hover:shadow-[0_0_30px_rgba(201,168,76,0.15)] cursor-pointer h-full flex flex-col overflow-hidden">
                 <div className="absolute inset-0 bg-gradient-to-br from-gold/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-xl" />
                 <div className="relative z-10">
-                  <div
-                    className="game-icon mb-4 btn-pulse"
-                    style={{ background: 'linear-gradient(180deg, #C9A84C18, #C9A84C06)', borderColor: '#C9A84C44' }}
-                  >
+                  <div className="game-icon-lg mb-4 btn-pulse" style={{ borderColor: '#C9A84C' }}>
                     ▶
                   </div>
                   <p className="font-mono text-[11px] tracking-[0.15em] text-gold uppercase mb-2">
