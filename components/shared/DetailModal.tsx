@@ -34,7 +34,7 @@ export default function DetailModal({ title, subtitle, emoji, color, children, o
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center"
+      className="fixed inset-0 z-50 flex items-start justify-center pt-[5vh]"
       style={{
         background: 'rgba(7, 9, 15, 0.88)',
         backdropFilter: 'blur(10px)',

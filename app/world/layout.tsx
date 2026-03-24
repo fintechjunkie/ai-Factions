@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useEffect } from 'react';
 
 const TABS = [
   { label: 'Factions', href: '/world/factions', desc: '10 power players' },
@@ -17,6 +18,11 @@ export default function WorldLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+
+  // Scroll to top when entering world mode
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior });
+  }, [pathname]);
 
   return (
     <div>

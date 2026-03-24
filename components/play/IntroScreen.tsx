@@ -20,6 +20,8 @@ const LINES = [
   { text: 'scenarios', type: 'scenarios', delay: 800 },
   { text: 'Your predictions will shift these probabilities. The dominant scenario shapes the world you build.', type: 'accent', delay: 600 },
   { text: '---', type: 'divider', delay: 300 },
+  { text: '> 🔮 THE ORACLE is available at any time — a strategic AI analyst that can answer questions about factions, alliances, scenarios, and the world your choices create.', type: 'oracle', delay: 800 },
+  { text: '---', type: 'divider', delay: 300 },
   { text: '> AWAITING INPUT...', type: 'mono', delay: 500 },
 ];
 
@@ -29,21 +31,21 @@ const SCENARIOS = [
     name: 'THE GOLD RUSH',
     prob: 35,
     color: '#FBBF24',
-    desc: 'AI deploys fast. No guardrails. Capital wins.',
+    desc: 'Gleaming cities for those with capital. The math stopped working for everyone else.',
   },
   {
     icon: '🔥',
     name: 'THE BACKLASH',
     prob: 25,
     color: '#F43F5E',
-    desc: 'Job losses trigger revolt. Workers get protection.',
+    desc: 'The world fought back. Real protections, but the forces were only slowed.',
   },
   {
     icon: '⚖️',
     name: 'THE STALEMATE',
     prob: 40,
     color: '#14B8A6',
-    desc: 'Washington gridlocks. EU regulates. Patchwork rules.',
+    desc: 'Nobody won. Thirty overlapping legal regimes. The lines keep moving.',
   },
 ];
 
@@ -165,6 +167,26 @@ export default function IntroScreen({ onNext }: IntroScreenProps) {
                         </p>
                       </div>
                     ))}
+                  </div>
+                );
+              }
+
+              if (line.type === 'oracle') {
+                return (
+                  <div
+                    key={i}
+                    className="rounded-xl px-4 py-3.5 my-3 animate-[fadeIn_0.5s_ease_forwards]"
+                    style={{ background: '#C9A84C0A', border: '1px solid #C9A84C20' }}
+                  >
+                    <div className="flex items-start gap-3">
+                      <span className="text-2xl flex-shrink-0">🔮</span>
+                      <div>
+                        <p className="font-mono text-[10px] tracking-[0.12em] text-gold/60 mb-1">THE ORACLE</p>
+                        <p className="font-serif text-[13px] text-text/80 leading-[1.6]">
+                          A strategic AI analyst available at any time. Ask it about factions, alliances, scenarios, and the world your choices create. Look for the <span className="font-mono text-gold text-[11px]">◎ ASK ORACLE</span> button.
+                        </p>
+                      </div>
+                    </div>
                   </div>
                 );
               }

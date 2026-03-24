@@ -123,12 +123,25 @@ export default function LandingPage() {
             for compensation for the work their creations were trained on.
           </p>
 
-          <p className="font-serif text-base leading-[1.85] text-text mb-0">
+          <p className="font-serif text-base leading-[1.85] text-text mb-5">
             Two modes. One world. <strong className="text-teal">Explore</strong> the factions, events,
             and forces shaping this moment. Or <strong className="text-gold">Play</strong> the
             simulation — predict nine key events and see the world your choices
             produce.
           </p>
+
+          {/* Oracle callout */}
+          <div className="rounded-xl px-5 py-4 mb-0" style={{ background: '#C9A84C0A', border: '1px solid #C9A84C20' }}>
+            <div className="flex items-center gap-3">
+              <span className="text-2xl">🔮</span>
+              <div>
+                <p className="font-mono text-[10px] tracking-[0.12em] text-gold/60 mb-0.5">THE ORACLE</p>
+                <p className="font-serif text-sm text-text/75 leading-[1.6] m-0">
+                  A strategic AI analyst that knows every faction, alliance, and scenario. Available at any time via the <span className="font-mono text-gold text-[11px]">◎ ASK ORACLE</span> button in the top nav.
+                </p>
+              </div>
+            </div>
+          </div>
 
           {/* Animated divider */}
           <div className="divider-animated my-8" />
