@@ -61,22 +61,21 @@ export default function EventsPage() {
                 border: `1px solid #1A2535`,
               }}
             >
-              <div className="flex items-center justify-between mb-2">
-                <div className="flex items-center gap-2.5">
-                  <span
-                    className="game-icon-sm flex items-center justify-center"
-                    style={{ background: `${probColor}12`, borderColor: `${probColor}33` }}
-                  >
+              <div className="flex items-center justify-between mb-2.5">
+                <div className="flex items-center gap-3">
+                  <span className="game-icon" style={{ borderColor: probColor }}>
                     {icon?.emoji || '⚡'}
                   </span>
-                  <div>
-                    <span className="font-mono font-bold text-xs text-text">{t.name}</span>
-                    <span
-                      className="font-mono text-[9px] font-bold tracking-[0.1em] rounded px-1.5 py-0.5 ml-2"
-                      style={{ background: `${probColor}22`, color: probColor }}
-                    >
-                      {t.probability} · {t.probabilityPct}%
-                    </span>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-0.5">
+                      <span className="font-mono font-bold text-xs text-text">{t.name}</span>
+                      <span
+                        className="font-mono text-[9px] font-bold tracking-[0.1em] rounded px-1.5 py-0.5"
+                        style={{ background: `${probColor}22`, color: probColor }}
+                      >
+                        {t.probability} · {t.probabilityPct}%
+                      </span>
+                    </div>
                   </div>
                 </div>
                 <span className="text-muted text-[11px] select-none">▸</span>

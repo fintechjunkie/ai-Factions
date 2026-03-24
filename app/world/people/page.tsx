@@ -94,28 +94,25 @@ export default function PeoplePage() {
               className="rounded-xl px-4 py-3.5 cursor-pointer transition-all duration-150 hover:border-gold/30"
               style={{ background: '#111820', border: '1px solid #1A2535' }}
             >
-              <div className="flex items-center justify-between mb-1">
-                <div className="flex items-center gap-2">
-                  <span
-                    className="game-icon-sm flex items-center justify-center"
-                    style={{ background: `linear-gradient(180deg, ${g.color}18, ${g.color}06)`, borderColor: `${g.color}33` }}
-                  >
-                    {icon?.emoji || '👤'}
-                  </span>
-                  <span className="font-mono font-bold text-[11px]" style={{ color: g.color }}>
-                    {g.name}
-                  </span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <span className="font-mono text-[11px] font-bold" style={{ color: bcolor }}>
-                    {g.baseScore}
-                  </span>
-                  <span className="text-muted text-[11px] select-none">▸</span>
-                </div>
-              </div>
-              <div className="flex items-center gap-1.5 mb-1.5">
-                <div className="flex-1 h-1 bg-raised rounded-sm overflow-hidden">
-                  <div className="h-full rounded-sm" style={{ width: `${g.baseScore}%`, background: bcolor }} />
+              <div className="flex items-center gap-3 mb-2.5">
+                <span className="game-icon" style={{ borderColor: g.color }}>
+                  {icon?.emoji || '👤'}
+                </span>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="font-mono font-bold text-[11px]" style={{ color: g.color }}>
+                      {g.name}
+                    </span>
+                    <div className="flex items-center gap-1.5">
+                      <span className="font-mono text-[11px] font-bold" style={{ color: bcolor }}>
+                        {g.baseScore}
+                      </span>
+                      <span className="text-muted text-[11px] select-none">▸</span>
+                    </div>
+                  </div>
+                  <div className="h-1.5 bg-raised rounded-sm overflow-hidden">
+                    <div className="h-full rounded-sm" style={{ width: `${g.baseScore}%`, background: bcolor }} />
+                  </div>
                 </div>
               </div>
               <p className="font-serif text-xs text-muted leading-[1.4]">{g.desc}</p>

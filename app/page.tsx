@@ -141,21 +141,33 @@ export default function LandingPage() {
           <div className="grid grid-cols-2 gap-4">
             {/* World Card */}
             <Link href="/world/factions" className="block group">
-              <div className="relative bg-[#0a0e14] border border-teal/30 rounded-xl p-6 transition-all duration-300 group-hover:border-teal group-hover:shadow-[0_0_30px_rgba(20,184,166,0.15)] cursor-pointer h-full flex flex-col overflow-hidden">
-                {/* Subtle gradient overlay on hover */}
-                <div className="absolute inset-0 bg-gradient-to-br from-teal/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-xl" />
+              <div className="relative rounded-2xl p-7 transition-all duration-300 cursor-pointer h-full flex flex-col overflow-hidden"
+                style={{
+                  background: 'linear-gradient(180deg, #0e1218, #0a0e14)',
+                  border: '2px solid #14B8A644',
+                  boxShadow: '0 6px 24px rgba(0,0,0,0.4), inset 0 1px 0 rgba(20,184,166,0.08)',
+                }}
+              >
+                <div className="absolute inset-0 bg-gradient-to-br from-teal/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-2xl" />
                 <div className="relative z-10">
-                  <div className="game-icon-lg mb-4 transition-all duration-300 group-hover:shadow-[0_0_24px_rgba(20,184,166,0.2)]" style={{ borderColor: '#14B8A6' }}>
+                  <div className="game-icon-lg mb-5" style={{ borderColor: '#14B8A6' }}>
                     🌐
                   </div>
                   <p className="font-mono text-[11px] tracking-[0.15em] text-teal uppercase mb-2">
                     EXPLORE THE WORLD
                   </p>
-                  <p className="font-serif text-sm leading-[1.7] text-body flex-1 mb-5">
+                  <p className="font-serif text-sm leading-[1.7] text-body flex-1 mb-6">
                     Deep dive into the factions, events, and forces shaping
                     AI&apos;s impact on society.
                   </p>
-                  <span className="inline-block bg-teal text-black font-mono font-bold text-xs tracking-[0.12em] px-5 py-2.5 rounded-md transition-all duration-300 group-hover:shadow-[0_0_16px_rgba(20,184,166,0.4)]">
+                  <span
+                    className="inline-block font-mono font-bold text-xs tracking-[0.12em] px-6 py-3 rounded-xl text-black transition-all duration-300 group-hover:brightness-110"
+                    style={{
+                      background: 'linear-gradient(180deg, #18D4B0, #14B8A6, #0F9985)',
+                      border: '2px solid #14B8A6',
+                      boxShadow: '0 4px 14px rgba(0,0,0,0.4), 0 2px 4px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.25), inset 0 -2px 4px rgba(0,0,0,0.15)',
+                    }}
+                  >
                     ENTER THE WORLD →
                   </span>
                 </div>
@@ -164,20 +176,33 @@ export default function LandingPage() {
 
             {/* Play Card */}
             <Link href="/play" className="block group">
-              <div className="relative bg-[#0a0e14] border border-gold/30 rounded-xl p-6 transition-all duration-300 group-hover:border-gold group-hover:shadow-[0_0_30px_rgba(201,168,76,0.15)] cursor-pointer h-full flex flex-col overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-br from-gold/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-xl" />
+              <div className="relative rounded-2xl p-7 transition-all duration-300 cursor-pointer h-full flex flex-col overflow-hidden"
+                style={{
+                  background: 'linear-gradient(180deg, #14120e, #0e0c08)',
+                  border: '2px solid #C9A84C44',
+                  boxShadow: '0 6px 24px rgba(0,0,0,0.4), inset 0 1px 0 rgba(201,168,76,0.08)',
+                }}
+              >
+                <div className="absolute inset-0 bg-gradient-to-br from-gold/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-2xl" />
                 <div className="relative z-10">
-                  <div className="game-icon-lg mb-4 btn-pulse" style={{ borderColor: '#C9A84C' }}>
-                    ▶
+                  <div className="game-icon-lg mb-5 btn-pulse" style={{ borderColor: '#C9A84C' }}>
+                    🎮
                   </div>
                   <p className="font-mono text-[11px] tracking-[0.15em] text-gold uppercase mb-2">
                     PLAY THE SIMULATION
                   </p>
-                  <p className="font-serif text-sm leading-[1.7] text-body flex-1 mb-5">
+                  <p className="font-serif text-sm leading-[1.7] text-body flex-1 mb-6">
                     Predict 9 key events. Choose a time horizon. See the world
                     your choices produce.
                   </p>
-                  <span className="inline-block bg-gold text-black font-mono font-bold text-xs tracking-[0.12em] px-5 py-2.5 rounded-md transition-all duration-300 group-hover:shadow-[0_0_16px_rgba(201,168,76,0.4)]">
+                  <span
+                    className="inline-block font-mono font-bold text-xs tracking-[0.12em] px-6 py-3 rounded-xl text-black transition-all duration-300 group-hover:brightness-110"
+                    style={{
+                      background: 'linear-gradient(180deg, #DEB85C, #C9A84C, #A8893A)',
+                      border: '2px solid #B8943F',
+                      boxShadow: '0 4px 14px rgba(0,0,0,0.4), 0 2px 4px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.25), inset 0 -2px 4px rgba(0,0,0,0.15)',
+                    }}
+                  >
                     START THE SIMULATION →
                   </span>
                 </div>
